@@ -1,31 +1,19 @@
-[gd_resource type="Resource" script_class="FighterState" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="FighterState" load_steps=6 format=3 uid="uid://rgivtkv0toby"]
 
 [ext_resource type="Script" uid="uid://b8vqwkv52qq3e" path="res://Scripts/SakugaEngine/Resources/AnimationSettings.cs" id="1_anim"]
-[ext_resource type="Script" uid="uid://bf60srwkccsm8" path="res://Scripts/SakugaEngine/Resources/FighterState.cs" id="1_state"]
 [ext_resource type="Script" uid="uid://5you05l2efnd" path="res://Scripts/SakugaEngine/Resources/StatePhysics.cs" id="1_phys"]
+[ext_resource type="Script" uid="uid://bf60srwkccsm8" path="res://Scripts/SakugaEngine/Resources/FighterState.cs" id="1_state"]
 
 [sub_resource type="Resource" id="Resource_anim"]
 script = ExtResource("1_anim")
-AtFrame = 0
 SourceAnimation = "Death"
-LimitRange = false
-AnimationRange = Vector2i(0, 0)
-Offset = Vector3(0, 0, 0)
 
 [sub_resource type="Resource" id="Resource_phys"]
 script = ExtResource("1_phys")
-Frame = 0
 UseLateralSpeed = true
 LateralSpeed = -15000
 UseVerticalSpeed = true
-VerticalSpeed = 0
-UseGravity = false
-ResetGravity = false
-Gravity = 0
 UseLateralInertia = true
-UseVerticalInertia = false
-UseHorizontalInput = false
-UseVerticalInput = false
 
 [resource]
 script = ExtResource("1_state")
@@ -33,10 +21,7 @@ StateName = "Death"
 Type = 4
 OffTheGround = true
 Duration = 100
-Loop = false
-LoopFrames = Vector2i(0, 0)
-TurnState = -1
-HitStunFrameLimit = -1
+stateProperties = null
 statePhysics = [SubResource("Resource_phys")]
 hitboxStates = []
 animationEvents = []

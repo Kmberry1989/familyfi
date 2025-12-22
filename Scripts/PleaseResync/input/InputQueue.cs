@@ -1,13 +1,14 @@
 using System.Diagnostics;
+using SakugaEngine.Scripts.PleaseResync.input;
 
-namespace PleaseResync
+namespace SakugaEngine.Scripts.PleaseResync.input
 {
     internal class InputQueue
     {
         public const int QueueSize = 128;
-        private uint _frameDelay;
-        private GameInput[] _inputs;
-        private GameInput[] _lastPredictedInputs;
+        private readonly uint _frameDelay;
+        private readonly GameInput[] _inputs;
+        private readonly GameInput[] _lastPredictedInputs;
 
         public InputQueue(uint inputSize, uint playerCount, uint frameDelay = 0)
         {
@@ -34,8 +35,10 @@ namespace PleaseResync
             Debug.Assert(frame >= 0);
 
             frame += (int)_frameDelay;
-            _inputs[frame % QueueSize] = new GameInput(input);
-            _inputs[frame % QueueSize].Frame = frame;
+            _inputs[frame % QueueSize] = new GameInput(input)
+            {
+                Frame = frame
+            };
         }
 
         public GameInput GetInput(int frame, bool predict = true)
@@ -52,12 +55,16 @@ namespace PleaseResync
                 {
                     // predict current frame based off previous frame.
                     var prevFrame = _inputs[PreviousFrame(frameOffset)];
-                    _inputs[frameOffset] = new GameInput(prevFrame);
-                    _inputs[frameOffset].Frame = GameInput.NullFrame;
+                    _inputs[frameOffset] = new GameInput(prevFrame)
+                    {
+                        Frame = GameInput.NullFrame
+                    };
 
                     // add new predicted frame to the queue. when later is proved that the input was right or wrong it will be reset.
-                    _lastPredictedInputs[frameOffset] = new GameInput(_inputs[frameOffset]);
-                    _lastPredictedInputs[frameOffset].Frame = frame;
+                    _lastPredictedInputs[frameOffset] = new GameInput(_inputs[frameOffset])
+                    {
+                        Frame = frame
+                    };
                 }
             }
             return new GameInput(_inputs[frameOffset]);
@@ -70,6 +77,6 @@ namespace PleaseResync
             _lastPredictedInputs[frameOffset].Frame = GameInput.NullFrame;
         }
 
-        private int PreviousFrame(int offset) => (((offset) == 0) ? (QueueSize - 1) : ((offset) - 1));
+        private static int PreviousFrame(int offset) => (((offset) == 0) ? (QueueSize - 1) : ((offset) - 1));
     }
 }

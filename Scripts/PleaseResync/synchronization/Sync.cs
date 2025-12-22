@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System;
+using SakugaEngine.Scripts.PleaseResync.input;
+using PleaseResync;
 
-namespace PleaseResync
+namespace SakugaEngine.Scripts.PleaseResync.synchronization
 {
     internal class Sync
     {
@@ -12,19 +14,19 @@ namespace PleaseResync
         private readonly Device[] _devices;
         private readonly List<Device> _spectators;
 
-        private TimeSync _timeSync;
-        private InputQueue[] _deviceInputs;
-        private StateStorage _stateStorage;
+        private readonly TimeSync _timeSync;
+        private readonly InputQueue[] _deviceInputs;
+        private readonly StateStorage _stateStorage;
 
         private const int HealthCheckFramesBehind = 10;
         private const byte HealthCheckTime = 30;
         private const byte PingWaitTime = 30;
-        private bool _offlinePlay;
+        private readonly bool _offlinePlay;
 
         private SyncState _syncState;
 
         private uint _lastSentChecksum;
-        private uint[] rollbackFrames;
+        private readonly uint[] rollbackFrames;
 
         public Sync(Device[] devices, uint inputSize, bool offline, List<Device> spectators = null)
         {
@@ -74,7 +76,7 @@ namespace PleaseResync
             // should be called after polling the remote devices for their messages.
             Debug.Assert(deviceInput != null);
 
-            bool isTimeSynced = _offlinePlay ? true : _timeSync.IsTimeSynced(_devices);
+            bool isTimeSynced = _offlinePlay || _timeSync.IsTimeSynced(_devices);
             _syncState = isTimeSynced ? SyncState.RUNNING : SyncState.SYNCING;
 
             UpdateSyncFrame();
@@ -145,13 +147,13 @@ namespace PleaseResync
             int minAck = int.MaxValue;
             foreach (var spectator in _spectators)
             {
-                if (spectator.State == Device.DeviceState.Running) 
+                if (spectator.State == Device.DeviceState.Running)
                 {
                     minAck = (int)Math.Min(spectator.LastAckedInputFrame, minAck);
                 }
             }
 
-            if(minAck != int.MaxValue)
+            if (minAck != int.MaxValue)
             {
                 minFrame = Math.Max(minFrame, minAck);
             }
@@ -172,7 +174,7 @@ namespace PleaseResync
                     Advantage = 0,
                     StartFrame = (uint)minFrame,
                     EndFrame = (uint)maxFrame,
-                    Input = sendInput.ToArray()
+                    Input = [.. sendInput]
                 });
             }
         }
@@ -180,8 +182,8 @@ namespace PleaseResync
         private uint GetAverageRollbackFrames()
         {
             float sumFrames = 0f;
-            
-            for(int i = 0; i < rollbackFrames.Length; i++)
+
+            for (int i = 0; i < rollbackFrames.Length; i++)
             {
                 sumFrames += rollbackFrames[i];
             }
@@ -255,7 +257,7 @@ namespace PleaseResync
                         //StartFrame = device.LastAckedInputFrame,
                         EndFrame = finalFrame,
                         Advantage = _timeSync.LocalFrameAdvantage,
-                        Input = combinedInput.ToArray()
+                        Input = [.. combinedInput]
                     });
                 }
             }

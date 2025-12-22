@@ -1,9 +1,12 @@
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using SakugaEngine.Scripts.PleaseResync.synchronization;
 //using Godot;
 
-namespace PleaseResync
+using PleaseResync;
+
+namespace SakugaEngine.Scripts.PleaseResync.session.backends
 {
     /// <summary>
     /// Peer2PeerSession implements a session for devices wanting to play your game together via network.
@@ -14,10 +17,10 @@ namespace PleaseResync
         internal protected override Device[] AllDevices => _allDevices;
 
         private readonly Device[] _allDevices;
-        private List<Device> _spectators;
+        private readonly List<Device> _spectators;
         private readonly SessionAdapter _sessionAdapter;
 
-        private Sync _sync;
+        private readonly Sync _sync;
         private Device _localDevice;
         private uint _numSpectators;
 
@@ -55,7 +58,7 @@ namespace PleaseResync
         }
 
         public override void AddSpectatorDevice(object remoteConfiguration)
-        { 
+        {
             uint spectatorId = uint.MaxValue - _numSpectators;
             _sessionAdapter.AddRemote(spectatorId, remoteConfiguration);
             _spectators.Add(new Device(this, spectatorId, 0, Device.DeviceType.Spectator));
@@ -105,9 +108,12 @@ namespace PleaseResync
             foreach (var (_, deviceId, message) in messages)
             {
                 //GD.Print($"Received message from remote device {deviceId}: {message}");
-                if  (deviceId <= DeviceCount) {
+                if (deviceId <= DeviceCount)
+                {
                     _allDevices[deviceId].HandleMessage(message);
-                } else {
+                }
+                else
+                {
                     int idx = (int)(uint.MaxValue - deviceId);
                     _spectators[idx].HandleMessage(message);
                 }
@@ -116,7 +122,7 @@ namespace PleaseResync
 
         public override bool IsRunning()
         {
-            return 
+            return
                 _allDevices.All(device => device.State == Device.DeviceState.Running) &&
                 _spectators.All(device => device.State != Device.DeviceState.Syncing);
         }
@@ -143,7 +149,7 @@ namespace PleaseResync
             uint inputCount = (message.EndFrame - message.StartFrame) + 1;
 
             if (inputCount <= 0) return;
-            
+
             uint inputSize = (uint)(message.Input.Length / inputCount);
 
             //Godot.GD.Print($"Recieved Inputs For Frames {message.StartFrame} to {message.EndFrame}. count: {inputCount}. size per input: {inputSize}");

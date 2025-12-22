@@ -26,6 +26,8 @@ namespace SakugaEngine.Game
             }
         }
 
+
+
         public override void OnlineGame(bool spectate, uint players, uint spectators, uint ID)
         {
             GameManager.SetBGM();

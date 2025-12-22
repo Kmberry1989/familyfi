@@ -2,25 +2,17 @@ using System;
 using System.Linq;
 using System.Diagnostics;
 
-namespace PleaseResync
+namespace SakugaEngine.Scripts.PleaseResync.input
 {
-    internal class GameInput
+    internal class GameInput(int frame, uint inputSize, uint playerCount)
     {
         public const int NullFrame = -1;
 
-        public readonly uint InputSize;
-        public readonly uint PlayerCount;
+        public readonly uint InputSize = inputSize;
+        public readonly uint PlayerCount = playerCount;
 
-        public int Frame;
-        public byte[] Inputs;
-
-        public GameInput(int frame, uint inputSize, uint playerCount)
-        {
-            Frame = frame;
-            Inputs = new byte[inputSize * playerCount];
-            InputSize = inputSize;
-            PlayerCount = playerCount;
-        }
+        public int Frame = frame;
+        public byte[] Inputs = new byte[inputSize * playerCount];
 
         public GameInput(GameInput gameInput) : this(gameInput.Frame, gameInput.InputSize, gameInput.PlayerCount)
         {

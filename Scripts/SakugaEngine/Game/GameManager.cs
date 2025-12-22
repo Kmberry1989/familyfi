@@ -273,40 +273,40 @@ namespace SakugaEngine.Game
         public byte[] ReadInputs(int id, int inputSize)
         {
             byte[] input = new byte[inputSize];
-            string prexif = "";
+            string prefix = "";
 
             switch (id)
             {
                 case 0:
-                    prexif = "k1";
+                    prefix = "k1";
                     break;
                 case 1:
-                    prexif = "k2";
+                    prefix = "k2";
                     break;
             }
 
-            if (Input.IsActionPressed(prexif + "_up") && !Input.IsActionPressed(prexif + "_down"))
+            if (Input.IsActionPressed(prefix + "_up") && !Input.IsActionPressed(prefix + "_down"))
                 input[0] |= Global.INPUT_UP;
 
-            if (!Input.IsActionPressed(prexif + "_up") && Input.IsActionPressed(prexif + "_down"))
+            if (!Input.IsActionPressed(prefix + "_up") && Input.IsActionPressed(prefix + "_down"))
                 input[0] |= Global.INPUT_DOWN;
 
-            if (Input.IsActionPressed(prexif + "_left") && !Input.IsActionPressed(prexif + "_right"))
+            if (Input.IsActionPressed(prefix + "_left") && !Input.IsActionPressed(prefix + "_right"))
                 input[0] |= Global.INPUT_LEFT;
 
-            if (!Input.IsActionPressed(prexif + "_left") && Input.IsActionPressed(prexif + "_right"))
+            if (!Input.IsActionPressed(prefix + "_left") && Input.IsActionPressed(prefix + "_right"))
                 input[0] |= Global.INPUT_RIGHT;
 
-            if (Input.IsActionPressed(prexif + "_face_a"))
+            if (Input.IsActionPressed(prefix + "_face_a"))
                 input[0] |= Global.INPUT_FACE_A;
 
-            if (Input.IsActionPressed(prexif + "_face_b"))
+            if (Input.IsActionPressed(prefix + "_face_b"))
                 input[0] |= Global.INPUT_FACE_B;
 
-            if (Input.IsActionPressed(prexif + "_face_c"))
+            if (Input.IsActionPressed(prefix + "_face_c"))
                 input[0] |= Global.INPUT_FACE_C;
 
-            if (Input.IsActionPressed(prexif + "_face_d"))
+            if (Input.IsActionPressed(prefix + "_face_d"))
                 input[0] |= Global.INPUT_FACE_D;
 
             /*if (Input.IsActionPressed(prexif + "_macro_ab"))
@@ -379,13 +379,6 @@ namespace SakugaEngine.Game
         private void InjectSharedAnimations(SakugaFighter fighter)
         {
             GD.Print($"[InjectSharedAnimations] Starting for {fighter.Name}...");
-            var animMap = new Dictionary<string, string>
-            {
-                {"Idle", "res://Fighters/Shared/Animations/Bouncing Fight Idle.glb"},
-                {"Walk_Forward", "res://Fighters/Shared/Animations/Walking.glb"},
-                {"Walk_Back", "res://Fighters/Shared/Animations/Walking Backward.glb"},
-                {"Crouch_Idle", "res://Fighters/Shared/Animations/Crouched Walking.glb"}
-            };
 
             if (fighter.Animator == null || fighter.Animator.players == null || fighter.Animator.players.Length == 0)
             {
@@ -402,77 +395,130 @@ namespace SakugaEngine.Game
                 targetPlayer.AddAnimationLibrary("", library);
             }
 
-            foreach (var kvp in animMap)
+            // Define mandatory state mappings (State Name -> Filename without extension)
+            var aliases = new Dictionary<string, List<string>>
             {
-                var loadedRes = GD.Load(kvp.Value);
-                if (loadedRes == null)
-                {
-                    GD.PrintErr($"[InjectSharedAnimations] Failed to load resource: {kvp.Value}");
-                    continue;
-                }
+                { "Bouncing Fight Idle", new List<string> { "Idle" } },
+                { "Walking", new List<string> { "Walk_Forward" } },
+                { "Walking Backward", new List<string> { "Walk_Back" } },
+                { "Crouched Walking", new List<string> { "Crouch", "Crouch_Idle" } },
+                { "Jump", new List<string> { "Jump_N", "Jump_F", "Jump_B" } },
+                { "Jumping Down", new List<string> { "Landing" } },
+                { "Stumble Backwards", new List<string> { "HitStun" } },
+                { "Blocking", new List<string> { "BlockStun" } },
+                { "Knocked Out (1)", new List<string> { "Knockdown" } }
+            };
 
-                Animation startAnim = null;
-                Node tempNode = null;
-                AnimationPlayer sourcePlayer = null;
-
-                if (loadedRes is PackedScene packedScene)
+            string folderPath = "res://Fighters/Shared/Animations/";
+            var dir = DirAccess.Open(folderPath);
+            if (dir != null)
+            {
+                dir.ListDirBegin();
+                string fileName = dir.GetNext();
+                while (fileName != "")
                 {
-                    tempNode = packedScene.Instantiate();
-                    sourcePlayer = tempNode.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
-                    if (sourcePlayer == null)
+                    if (!dir.CurrentIsDir() && (fileName.EndsWith(".glb") || fileName.EndsWith(".gltf")))
                     {
-                        foreach (var child in tempNode.GetChildren())
+                        string fullPath = folderPath + fileName;
+                        string baseName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+
+                        // Load and extract animation
+                        Animation anim = LoadAnimationFromResource(fullPath, fighter.Name);
+                        if (anim != null)
                         {
-                            if (child is AnimationPlayer ap) { sourcePlayer = ap; break; }
-                        }
-                    }
-                    if (sourcePlayer != null)
-                    {
-                        var animList = sourcePlayer.GetAnimationList();
-                        if (animList.Length > 0) startAnim = sourcePlayer.GetAnimation(animList[0]);
-                    }
-                }
-                else if (loadedRes is AnimationLibrary animLib)
-                {
-                    var animList = animLib.GetAnimationList();
-                    if (animList.Count > 0) startAnim = animLib.GetAnimation(animList[0]);
-                }
-
-                if (startAnim != null)
-                {
-                    var animDup = (Animation)startAnim.Duplicate();
-                    animDup.LoopMode = Animation.LoopModeEnum.Linear;
-
-                    if (sourcePlayer != null)
-                    {
-                        var sourceRoot = sourcePlayer.RootNode.ToString();
-                        var targetRoot = targetPlayer.RootNode.ToString();
-                        if (!string.IsNullOrEmpty(sourceRoot) && !string.IsNullOrEmpty(targetRoot) && sourceRoot != targetRoot)
-                        {
-                            for (int track = 0; track < animDup.GetTrackCount(); track++)
+                            // Add with original name
+                            if (!library.HasAnimation(baseName))
                             {
-                                var trackPath = animDup.TrackGetPath(track).ToString();
-                                if (trackPath.StartsWith(sourceRoot))
+                                library.AddAnimation(baseName, anim);
+                            }
+
+                            // Add aliases
+                            if (aliases.ContainsKey(baseName))
+                            {
+                                foreach (var alias in aliases[baseName])
                                 {
-                                    var retargeted = trackPath.Replace(sourceRoot, targetRoot);
-                                    animDup.TrackSetPath(track, new NodePath(retargeted));
+                                    if (!library.HasAnimation(alias))
+                                    {
+                                        library.AddAnimation(alias, anim);
+                                        //GD.Print($"[InjectSharedAnimations] Added Alias: {alias} -> {baseName}");
+                                    }
                                 }
                             }
                         }
                     }
-
-                    if (library.HasAnimation(kvp.Key)) library.RemoveAnimation(kvp.Key);
-                    library.AddAnimation(kvp.Key, animDup);
-                    GD.Print($"[InjectSharedAnimations] Injected '{kvp.Key}' successfully.");
+                    fileName = dir.GetNext();
                 }
-                else
-                {
-                    GD.PrintErr($"[InjectSharedAnimations] Could not find animation in {kvp.Value}");
-                }
-
-                if (tempNode != null) tempNode.Free();
+            }
+            else
+            {
+                GD.PrintErr($"[InjectSharedAnimations] Failed to open directory: {folderPath}");
             }
             GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", targetPlayer.GetAnimationList())}");
+        }
+
+        private Animation LoadAnimationFromResource(string path, string debugName)
+        {
+            var loadedRes = GD.Load(path);
+            if (loadedRes == null)
+            {
+                GD.PrintErr($"[InjectSharedAnimations] Failed to load resource: {path}");
+                return null;
+            }
+
+            Animation startAnim = null;
+
+            if (loadedRes is PackedScene packedScene)
+            {
+                var tempNode = packedScene.Instantiate();
+                var sourcePlayer = tempNode.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+                if (sourcePlayer == null)
+                {
+                    foreach (var child in tempNode.GetChildren())
+                    {
+                        if (child is AnimationPlayer ap) { sourcePlayer = ap; break; }
+                    }
+                }
+                if (sourcePlayer != null)
+                {
+                    var animList = sourcePlayer.GetAnimationList();
+                    if (animList.Length > 0)
+                    {
+                        startAnim = sourcePlayer.GetAnimation(animList[0]);
+                    }
+                }
+                tempNode.QueueFree();
+            }
+            else if (loadedRes is AnimationLibrary animLib)
+            {
+                var list = animLib.GetAnimationList();
+                if (list.Count > 0) startAnim = animLib.GetAnimation(list[0]);
+            }
+            else if (loadedRes is Animation a)
+            {
+                startAnim = a;
+            }
+
+            if (startAnim != null)
+            {
+                startAnim.LoopMode = Animation.LoopModeEnum.Linear;
+
+                for (int i = 0; i < startAnim.GetTrackCount(); i++)
+                {
+                    string pathStr = startAnim.TrackGetPath(i).ToString();
+                    if (pathStr.Contains("Skeleton:"))
+                    {
+                        int colonIndex = pathStr.IndexOf(":");
+                        string boneName = pathStr.Substring(colonIndex + 1);
+                        startAnim.TrackSetPath(i, new NodePath($"GeneralSkeleton:{boneName}"));
+                    }
+                }
+                return startAnim;
+            }
+            else
+            {
+                GD.PrintErr($"[InjectSharedAnimations] Could not find animation in {path} for {debugName}");
+                return null;
+            }
         }
     }
 }

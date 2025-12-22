@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading;
+using SakugaEngine.Scripts.PleaseResync.session.backends;
 
 namespace PleaseResync
 {
@@ -91,7 +92,7 @@ namespace PleaseResync
                 if (ports[i] > 0) PlayerPorts[i] = ports[i];
             }
         }
-        
+
         public void CreateSpectatorConnections(string[] IPAdresses, ushort[] ports)
         {
             for (uint i = 0; i < IPAdresses.Length; i++)
@@ -194,7 +195,7 @@ namespace PleaseResync
             while (Started)
             {
                 mutex.WaitOne();
-                GameLoop();  
+                GameLoop();
                 mutex.ReleaseMutex();
                 Thread.Sleep((int)((1 / 60f) * 1000));
             }
@@ -319,7 +320,7 @@ namespace PleaseResync
         {
             if (frame >= RecordedInputs.Count)
                 RecordedInputs.Add(new ReplayInputs());
-            
+
             RecordedInputs[frame] = new ReplayInputs(inputs);
         }
 
@@ -339,9 +340,9 @@ namespace PleaseResync
             return cnv;
         }
 
-        public virtual void OnlineGame(bool spectate, uint players, uint spectators, uint ID) {}
-        public virtual void LocalGame(uint players) {}
-        public virtual void ReplayMode(uint players) {}
+        public virtual void OnlineGame(bool spectate, uint players, uint spectators, uint ID) { }
+        public virtual void LocalGame(uint players) { }
+        public virtual void ReplayMode(uint players) { }
     }
 
     public struct ReplayInputs

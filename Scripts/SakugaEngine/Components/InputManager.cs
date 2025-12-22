@@ -15,7 +15,7 @@ namespace SakugaEngine
         {
             if (motion == null) return false;
             if (motion.ValidInputs == null) return false;
-            
+
             bool inputFound = false;
 
             for (int i = 0; i < motion.ValidInputs.Length; i++)
@@ -47,22 +47,24 @@ namespace SakugaEngine
                     else
                         validInput = CheckDirectionalInputs(HistoryIndex, directionals, dirMode, motion.AbsoluteDirection) &&
                         CheckButtonInputs(HistoryIndex, buttons, butMode);
-                        
+
                     bool chargedInput = CheckChargeInputs(HistoryIndex, directionals, motion.DirectionalChargeLimit);
-                    
+
                     inputFound = (validBuffer && validInput) || chargedInput;
                     if (!inputFound) break;
                 }
                 if (inputFound) break;
             }
-            
+
             return inputFound;
         }
 
         public bool CheckInputEnd(MotionInputs motion)
         {
-            Global.DirectionalInputs directionals = motion.ValidInputs[0].Inputs[motion.ValidInputs[0].Inputs.Length - 1].Directional;
-            Global.ButtonInputs buttons = motion.ValidInputs[0].Inputs[motion.ValidInputs[0].Inputs.Length - 1].Buttons;
+            var lastInputs = motion.ValidInputs[0].Inputs;
+            var inputToCheck = lastInputs[^1];
+            Global.DirectionalInputs directionals = inputToCheck.Directional;
+            Global.ButtonInputs buttons = inputToCheck.Buttons;
 
             bool validInput;
 
@@ -74,11 +76,10 @@ namespace SakugaEngine
                 validInput = !CheckDirectionalInputs(CurrentHistory, directionals, Global.ButtonMode.HOLD, motion.AbsoluteDirection) &&
                 !CheckButtonInputs(CurrentHistory, buttons, Global.ButtonMode.HOLD);
 
-            if (!validInput)
-                return false;
-            
-            return true;
+            return validInput;
         }
+
+
 
         public bool CheckDirectionalInputs(int index, Global.DirectionalInputs buttonNumber, Global.ButtonMode buttonMode, bool absDirection)
         {
@@ -127,14 +128,14 @@ namespace SakugaEngine
                     break;
             }
 
-            bool absV = absDirection ? !up && !down : true;
-            bool absH = absDirection ? !left && !right : true;
+            bool absV = !absDirection || (!up && !down);
+            bool absH = !absDirection || (!left && !right);
 
             bool notP = buttonMode == Global.ButtonMode.NOT_PRESSED;
             bool canAbsH = notP || absH;
             bool canAbsV = notP || absV;
             bool neutralDirection = notP ? (down && up && left && right) : (!down && !up && !left && !right);
-            
+
             return (buttonNumber == Global.DirectionalInputs.DOWN && down && canAbsH) ||
                 (buttonNumber == Global.DirectionalInputs.LEFT && left && canAbsV) ||
                 (buttonNumber == Global.DirectionalInputs.RIGHT && right && canAbsV) ||
@@ -203,13 +204,10 @@ namespace SakugaEngine
 
             bool _left = IsBeingPressed(index, Global.INPUT_LEFT);
             bool _right = IsBeingPressed(index, Global.INPUT_RIGHT);
-            
-            bool left = _left;
-            if (InputSide < 0) left = _right;
 
-            bool right = _right;
-            if (InputSide < 0) right = _left;
-            
+            bool left = InputSide < 0 ? _right : _left;
+            // Removed unused 'right' variable
+
             bool up = IsBeingPressed(index, Global.INPUT_UP);
             bool down = IsBeingPressed(index, Global.INPUT_DOWN);
 
@@ -243,7 +241,7 @@ namespace SakugaEngine
             InputHistory[CurrentHistory].duration++;
             ChargeBuffer();
         }
-        
+
         public bool IsBeingPressed(int index, int input)
         {
             return (InputHistory[index].rawInput & input) != 0;
@@ -364,7 +362,7 @@ namespace SakugaEngine
         {
             for (int i = 0; i < Global.InputHistorySize; i++)
                 InputHistory[i].Serialize(bw);
-            
+
             bw.Write(CurrentHistory);
             bw.Write(InputSide);
         }
@@ -373,12 +371,12 @@ namespace SakugaEngine
         {
             for (int i = 0; i < Global.InputHistorySize; i++)
                 InputHistory[i].Deserialize(br);
-            
+
             CurrentHistory = br.ReadInt32();
             InputSide = br.ReadInt32();
         }
 
-        
+
     }
 
     [System.Serializable]
@@ -390,9 +388,9 @@ namespace SakugaEngine
         public short vCharge;
         public ushort bCharge;
 
-        public bool IsNull => rawInput == 0;
+        public readonly bool IsNull => rawInput == 0;
 
-        public void Serialize(BinaryWriter bw)
+        public readonly void Serialize(BinaryWriter bw)
         {
             bw.Write(rawInput);
             bw.Write(duration);
@@ -409,8 +407,8 @@ namespace SakugaEngine
             vCharge = br.ReadInt16();
             bCharge = br.ReadUInt16();
         }
-        
-        public override string ToString()
+
+        public readonly override string ToString()
         {
             return $"({rawInput}, {duration})";
         }

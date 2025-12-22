@@ -1,0 +1,105 @@
+[gd_resource type="Resource" script_class="FighterState" load_steps=14 format=3 uid="uid://iu2gxdyj1xs0"]
+
+[ext_resource type="Script" uid="uid://bf60srwkccsm8" path="res://Scripts/SakugaEngine/Resources/FighterState.cs" id="1"]
+[ext_resource type="Script" uid="uid://b8vqwkv52qq3e" path="res://Scripts/SakugaEngine/Resources/AnimationSettings.cs" id="1_gth28"]
+[ext_resource type="Script" uid="uid://5qrsoteskjym" path="res://Scripts/SakugaEngine/Resources/HitboxState.cs" id="2"]
+[ext_resource type="Script" uid="uid://5you05l2efnd" path="res://Scripts/SakugaEngine/Resources/StatePhysics.cs" id="3"]
+[ext_resource type="Script" uid="uid://bia88bspuvxd" path="res://Scripts/SakugaEngine/Resources/StateTransitionSettings.cs" id="4_g0lve"]
+
+[sub_resource type="Resource" id="Resource_y1sqq"]
+script = ExtResource("1_gth28")
+AtFrame = 0
+SourceAnimation = "66B"
+LimitRange = false
+AnimationRange = Vector2i(0, 0)
+Offset = Vector3(0, 0, 0)
+metadata/_custom_type_script = "uid://b8vqwkv52qq3e"
+
+[sub_resource type="Resource" id="Resource_3rhpl"]
+script = ExtResource("2")
+animationStage = 0
+Frame = 0
+HitboxIndex = 5
+
+[sub_resource type="Resource" id="Resource_5sicd"]
+script = ExtResource("2")
+animationStage = 1
+Frame = 9
+HitboxIndex = 17
+
+[sub_resource type="Resource" id="Resource_uhxso"]
+script = ExtResource("2")
+animationStage = 2
+Frame = 15
+HitboxIndex = 0
+
+[sub_resource type="Resource" id="Resource_04frn"]
+script = ExtResource("3")
+Frame = 0
+UseLateralSpeed = true
+LateralSpeed = 0
+UseVerticalSpeed = true
+VerticalSpeed = 0
+UseGravity = true
+ResetGravity = false
+Gravity = 0
+UseLateralInertia = false
+UseVerticalInertia = false
+UseHorizontalInput = false
+UseVerticalInput = false
+
+[sub_resource type="Resource" id="Resource_ujkja"]
+script = ExtResource("3")
+Frame = 4
+UseLateralSpeed = true
+LateralSpeed = 60000
+UseVerticalSpeed = true
+VerticalSpeed = 30000
+UseGravity = false
+ResetGravity = false
+Gravity = 0
+UseLateralInertia = false
+UseVerticalInertia = false
+UseHorizontalInput = false
+UseVerticalInput = false
+
+[sub_resource type="Resource" id="Resource_r4h2m"]
+script = ExtResource("3")
+Frame = 5
+UseLateralSpeed = false
+LateralSpeed = 0
+UseVerticalSpeed = false
+VerticalSpeed = 0
+UseGravity = true
+ResetGravity = false
+Gravity = 300000
+UseLateralInertia = false
+UseVerticalInertia = false
+UseHorizontalInput = false
+UseVerticalInput = false
+
+[sub_resource type="Resource" id="Resource_b6ogh"]
+script = ExtResource("4_g0lve")
+StateIndex = 0
+Condition = 1
+AtFrame = -1
+DistanceArea = Vector2i(0, 99999)
+
+[resource]
+script = ExtResource("1")
+StateName = "66B"
+Type = 2
+OffTheGround = false
+Duration = 24
+Loop = false
+LoopFrames = Vector2i(0, 0)
+TurnState = -1
+HitStunFrameLimit = -1
+stateProperties = null
+statePhysics = [SubResource("Resource_04frn"), SubResource("Resource_ujkja"), SubResource("Resource_r4h2m")]
+hitboxStates = [SubResource("Resource_3rhpl"), SubResource("Resource_5sicd"), SubResource("Resource_uhxso")]
+animationEvents = null
+throwPivot = null
+stateTransitions = Array[Object]([SubResource("Resource_b6ogh")])
+animationSettings = Array[Object]([SubResource("Resource_y1sqq")])
+AIFlags = 18

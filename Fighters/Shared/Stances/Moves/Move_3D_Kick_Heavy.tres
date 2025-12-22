@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="MoveSettings" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/InputSequence.cs" id="1_seq"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/InputOption.cs" id="2_opt"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/MotionInputs.cs" id="3_mot"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/MoveSettings.cs" id="4_ovr"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/ButtonChargeSequence.cs" id="5_charge"]
+
+[sub_resource type="Resource" id="Resource_seq"]
+script = ExtResource("1_seq")
+Directional = 4
+DirectionalMode = 4
+Buttons = 2
+ButtonMode = 1
+
+[sub_resource type="Resource" id="Resource_opt"]
+script = ExtResource("2_opt")
+Inputs = [SubResource("Resource_seq")]
+
+[sub_resource type="Resource" id="Resource_mot"]
+script = ExtResource("3_mot")
+ValidInputs = [SubResource("Resource_opt")]
+AbsoluteDirection = false
+InputBuffer = 8
+DirectionalChargeLimit = 0
+ButtonChargeLimit = 0
+
+[resource]
+script = ExtResource("4_ovr")
+MoveName = "Heavy Kick"
+MoveState = 8
+Inputs = SubResource("Resource_mot")
+SideChange = 0
+SuperGaugeRequired = 0
+BuildSuperGauge = 100
+HealthThreshold = Vector2i(0, 99999)
+SpendHealth = 0
+DistanceArea = Vector2i(0, 999999)
+IsSequenceFromStates = null
+IgnoreStates = null
+CancelsTo = null
+KaraCancelsTo = null
+buttonChargeSequence = null
+ExtraVariablesRequirement = null
+ExtraVariablesChange = null
+MoveEnd = 0
+MoveEndState = 0
+ChangeStance = -1
+FrameLimit = -1
+SuperFlash = 0
+Priority = 50
+CanBeOverrided = false
+CanOverrideToSelf = false
+IgnoreSamePriority = true
+InterruptCornerPushback = false
+PriorityBuffer = true
+WaitForNullStates = true
+UseOnGround = true
+UseOnAir = false

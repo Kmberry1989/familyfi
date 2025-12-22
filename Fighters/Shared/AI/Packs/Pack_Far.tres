@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AIActionPack" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/AI/AIActionPack.cs" id="1_pack"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Conditions/Condition_WalkF.tres" id="2_walk"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Conditions/Condition_Fireball.tres" id="3_fire"]
+
+[resource]
+script = ExtResource("1_pack")
+HorizontalDistance = 999999
+Conditions = [ExtResource("2_walk"), ExtResource("3_fire")]

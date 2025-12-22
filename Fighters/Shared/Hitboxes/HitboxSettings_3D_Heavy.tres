@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="HitboxSettings" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/HitboxSettings.cs" id="1_set"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Hitboxes/Hitbox_3D_Heavy.tres" id="2_heavy"]
+
+[resource]
+script = ExtResource("1_set")
+PushboxCenter = Vector2i(0, 10000)
+PushboxSize = Vector2i(8000, 20000)
+Hitboxes = [ExtResource("2_heavy")]

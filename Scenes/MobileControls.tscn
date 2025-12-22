@@ -1,0 +1,126 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8l7q6y5x403"]
+
+[ext_resource type="Script" uid="uid://dv1oiic7jx4jg" path="res://Scripts/SakugaEngine/UI/MobileControls.cs" id="1_x5y6z"]
+
+[node name="MobileControls" type="Control" node_paths=PackedStringArray("DPadUp", "DPadDown", "DPadLeft", "DPadRight", "ButtonA", "ButtonB", "ButtonC", "ButtonD", "ButtonStart")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x5y6z")
+DPadUp = NodePath("DPad/Up")
+DPadDown = NodePath("DPad/Down")
+DPadLeft = NodePath("DPad/Left")
+DPadRight = NodePath("DPad/Right")
+ButtonA = NodePath("FaceButtons/A")
+ButtonB = NodePath("FaceButtons/B")
+ButtonC = NodePath("FaceButtons/C")
+ButtonD = NodePath("FaceButtons/D")
+ButtonStart = NodePath("MenuButtons/Start")
+
+[node name="DPad" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = -250.0
+offset_right = 250.0
+offset_bottom = -50.0
+grow_vertical = 0
+
+[node name="Up" type="ColorRect" parent="DPad"]
+layout_mode = 0
+offset_left = 66.0
+offset_right = 132.0
+offset_bottom = 66.0
+color = Color(1, 1, 1, 0.392157)
+
+[node name="Down" type="ColorRect" parent="DPad"]
+layout_mode = 0
+offset_left = 66.0
+offset_top = 132.0
+offset_right = 132.0
+offset_bottom = 198.0
+color = Color(1, 1, 1, 0.392157)
+
+[node name="Left" type="ColorRect" parent="DPad"]
+layout_mode = 0
+offset_top = 66.0
+offset_right = 66.0
+offset_bottom = 132.0
+color = Color(1, 1, 1, 0.392157)
+
+[node name="Right" type="ColorRect" parent="DPad"]
+layout_mode = 0
+offset_left = 132.0
+offset_top = 66.0
+offset_right = 198.0
+offset_bottom = 132.0
+color = Color(1, 1, 1, 0.392157)
+
+[node name="FaceButtons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -250.0
+offset_right = -50.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="A" type="ColorRect" parent="FaceButtons"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 120.0
+offset_right = 110.0
+offset_bottom = 170.0
+color = Color(1, 0, 0, 0.392157)
+
+[node name="B" type="ColorRect" parent="FaceButtons"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 100.0
+offset_right = 180.0
+offset_bottom = 150.0
+color = Color(1, 1, 0, 0.392157)
+
+[node name="C" type="ColorRect" parent="FaceButtons"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 50.0
+offset_right = 110.0
+offset_bottom = 100.0
+color = Color(0, 0, 1, 0.392157)
+
+[node name="D" type="ColorRect" parent="FaceButtons"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 30.0
+offset_right = 180.0
+offset_bottom = 80.0
+color = Color(0, 1, 0, 0.392157)
+
+[node name="MenuButtons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 80.0
+grow_horizontal = 0
+
+[node name="Start" type="ColorRect" parent="MenuButtons"]
+layout_mode = 0
+offset_left = 70.0
+offset_right = 120.0
+offset_bottom = 50.0
+color = Color(0.5, 0.5, 0.5, 0.5)

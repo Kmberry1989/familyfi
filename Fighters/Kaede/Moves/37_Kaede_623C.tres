@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="MoveSettings" load_steps=3 format=3 uid="uid://d05yefknp8o8a"]
+
+[ext_resource type="Resource" uid="uid://ceak3kopd0qqb" path="res://Fighters/Shared/Inputs/24_Input_623C.tres" id="1_34peo"]
+[ext_resource type="Script" uid="uid://gk1rkw667o4n" path="res://Scripts/SakugaEngine/Resources/MoveSettings.cs" id="2_j4eds"]
+
+[resource]
+script = ExtResource("2_j4eds")
+MoveName = "623C"
+MoveState = 66
+Inputs = ExtResource("1_34peo")
+SideChange = 0
+SuperGaugeRequired = 0
+BuildSuperGauge = 0
+HealthThreshold = Vector2i(0, 99999)
+SpendHealth = 0
+DistanceArea = Vector2i(0, 999999)
+IsSequenceFromStates = PackedInt32Array()
+IgnoreStates = PackedInt32Array()
+CancelsTo = PackedInt32Array()
+KaraCancelsTo = PackedInt32Array()
+buttonChargeSequence = null
+ExtraVariablesRequirement = null
+ExtraVariablesChange = null
+MoveEnd = 2
+MoveEndState = -1
+ChangeStance = -1
+FrameLimit = -1
+SuperFlash = 0
+Priority = 7
+CanBeOverrided = true
+CanOverrideToSelf = false
+IgnoreSamePriority = false
+InterruptCornerPushback = false
+PriorityBuffer = false
+WaitForNullStates = false
+UseOnGround = false
+UseOnAir = true

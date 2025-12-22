@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="MoveSettings" load_steps=3 format=3 uid="uid://brha3nw12aj44"]
+
+[ext_resource type="Resource" uid="uid://ykyxja0283a" path="res://Fighters/Shared/Inputs/8_Input_2.tres" id="1_e3e5h"]
+[ext_resource type="Script" uid="uid://gk1rkw667o4n" path="res://Scripts/SakugaEngine/Resources/MoveSettings.cs" id="2_745ti"]
+
+[resource]
+script = ExtResource("2_745ti")
+MoveName = "Crouching"
+MoveState = 11
+Inputs = ExtResource("1_e3e5h")
+SideChange = 1
+SuperGaugeRequired = 0
+BuildSuperGauge = 0
+HealthThreshold = Vector2i(0, 99999)
+SpendHealth = 0
+DistanceArea = Vector2i(0, 999999)
+IsSequenceFromStates = PackedInt32Array()
+IgnoreStates = PackedInt32Array(12)
+CancelsTo = PackedInt32Array()
+KaraCancelsTo = PackedInt32Array()
+buttonChargeSequence = null
+ExtraVariablesRequirement = null
+ExtraVariablesChange = null
+MoveEnd = 0
+MoveEndState = -1
+ChangeStance = -1
+FrameLimit = -1
+SuperFlash = 0
+Priority = 0
+CanBeOverrided = true
+CanOverrideToSelf = false
+IgnoreSamePriority = false
+InterruptCornerPushback = false
+PriorityBuffer = true
+WaitForNullStates = true
+UseOnGround = true
+UseOnAir = false

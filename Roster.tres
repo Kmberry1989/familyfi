@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="FighterList" load_steps=21 format=3 uid="uid://c8s3ip7gkhwq6"]
+
+[ext_resource type="Script" uid="uid://c1vwroelg1kwb" path="res://Scripts/SakugaEngine/Resources/FighterList.cs" id="1_x0sfh"]
+[ext_resource type="Script" uid="uid://dclkxgxahdy5l" path="res://Scripts/SakugaEngine/Resources/FighterElement.cs" id="3_m8lbm"]
+
+; New Fighters
+[ext_resource type="PackedScene" path="res://Fighters/ERIC/ERIC.tscn" id="eric_s"]
+[ext_resource type="Resource" path="res://Fighters/ERIC/ERIC_Profile.tres" id="eric_p"]
+[ext_resource type="PackedScene" path="res://Fighters/KYLE/KYLE.tscn" id="kyle_s"]
+[ext_resource type="Resource" path="res://Fighters/KYLE/KYLE_Profile.tres" id="kyle_p"]
+[ext_resource type="PackedScene" path="res://Fighters/DONALD/DONALD.tscn" id="donald_s"]
+[ext_resource type="Resource" path="res://Fighters/DONALD/DONALD_Profile.tres" id="donald_p"]
+[ext_resource type="PackedScene" path="res://Fighters/VICKIE/VICKIE.tscn" id="vickie_s"]
+[ext_resource type="Resource" path="res://Fighters/VICKIE/VICKIE_Profile.tres" id="vickie_p"]
+[ext_resource type="PackedScene" path="res://Fighters/KRISTEN/KRISTEN.tscn" id="kristen_s"]
+[ext_resource type="Resource" path="res://Fighters/KRISTEN/KRISTEN_Profile.tres" id="kristen_p"]
+[ext_resource type="PackedScene" path="res://Fighters/ROCHELLE/ROCHELLE.tscn" id="rochelle_s"]
+[ext_resource type="Resource" path="res://Fighters/ROCHELLE/ROCHELLE_Profile.tres" id="rochelle_p"]
+
+[sub_resource type="Resource" id="sub_eric"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("eric_s")
+Profile = ExtResource("eric_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[sub_resource type="Resource" id="sub_kyle"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("kyle_s")
+Profile = ExtResource("kyle_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[sub_resource type="Resource" id="sub_donald"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("donald_s")
+Profile = ExtResource("donald_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[sub_resource type="Resource" id="sub_vickie"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("vickie_s")
+Profile = ExtResource("vickie_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[sub_resource type="Resource" id="sub_kristen"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("kristen_s")
+Profile = ExtResource("kristen_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[sub_resource type="Resource" id="sub_rochelle"]
+script = ExtResource("3_m8lbm")
+Instance = ExtResource("rochelle_s")
+Profile = ExtResource("rochelle_p")
+metadata/_custom_type_script = "uid://dclkxgxahdy5l"
+
+[resource]
+script = ExtResource("1_x0sfh")
+elements = Array[Resource]([SubResource("sub_eric"), SubResource("sub_kyle"), SubResource("sub_donald"), SubResource("sub_vickie"), SubResource("sub_kristen"), SubResource("sub_rochelle")])

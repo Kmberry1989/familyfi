@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AICondition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/AI/AICondition.cs" id="1_cond"]
+
+[resource]
+script = ExtResource("1_cond")
+Distance = Vector2i(25000, 20000)
+UseOnGround = true
+UseOnAir = false
+SuperGaugeRequired = 0
+Probability = 50
+ActionMode = 0
+ActionsList = PackedInt32Array(4, 5, 6, 7)
+CounterFlags = 0

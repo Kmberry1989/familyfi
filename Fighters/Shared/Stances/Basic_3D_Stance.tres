@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="FighterStance" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/FighterStance.cs" id="1_stance"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_WalkF.tres" id="2_walkf"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_WalkB.tres" id="3_walkb"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Crouch.tres" id="4_crouch"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_StepBack.tres" id="5_stepb"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Punch_A.tres" id="6_puncha"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Punch_Heavy.tres" id="7_punchh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Kick_A.tres" id="8_kicka"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Kick_Heavy.tres" id="9_kickh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_Fireball.tres" id="18_fire"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Moves/Move_3D_FlashKick.tres" id="19_flash"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Light.tres" id="10_hitl"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Heavy.tres" id="11_hith"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Stun.tres" id="12_hits"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Death.tres" id="13_death"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_GetUp.tres" id="14_getup"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_High.tres" id="15_blockh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_Low.tres" id="16_blockl"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_Air.tres" id="17_blocka"]
+
+[resource]
+script = ExtResource("1_stance")
+IsDamagePersistent = false
+IsRoundPersistent = false
+NeutralState = 0
+Moves = [ExtResource("2_walkf"), ExtResource("3_walkb"), ExtResource("4_crouch"), ExtResource("5_stepb"), ExtResource("6_puncha"), ExtResource("7_punchh"), ExtResource("8_kicka"), ExtResource("9_kickh"), ExtResource("18_fire"), ExtResource("19_flash")]
+HitReactions = [ExtResource("10_hitl"), ExtResource("12_hits"), ExtResource("11_hith"), ExtResource("11_hith"), ExtResource("12_hits"), ExtResource("12_hits")]
+GroundBlockInitialState = 12
+CrouchBlockInitialState = 13
+AirBlockInitialState = 14
+GroundForwardRecoveryState = 11
+GroundBackwardsRecoveryState = 11
+AirForwardRecoveryState = 11
+AirBackwardsRecoveryState = 11
+OffTheGroundRecoveryState = 11
+GroundThrowEscapeState = -1
+AirThrowEscapeState = -1

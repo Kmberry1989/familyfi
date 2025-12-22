@@ -1,0 +1,107 @@
+[gd_scene load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/SakugaFighter.cs" id="1_fighter"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Collision/PhysicsBody.cs" id="2_phys"]
+[ext_resource type="PackedScene" path="res://Fighters/KRISTEN/kristen.glb" id="3_model"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/FrameAnimator.cs" id="4_anim"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Idle.tres" id="5_s_idle"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_WalkF.tres" id="6_s_walkf"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_WalkB.tres" id="7_s_walkb"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Crouch.tres" id="8_s_crouch"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_StepBack.tres" id="9_s_stepb"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/StanceManager.cs" id="10_stance"]
+[ext_resource type="Resource" path="res://Fighters/Shared/Stances/Basic_3D_Stance.tres" id="11_basic_stance"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/InputManager.cs" id="12_input"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/CombatTracker.cs" id="13_track"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/FighterVariables.cs" id="14_vars"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/AIBrain.cs" id="15_ai"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Idle.tres" id="16_a_idle"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_WalkF.tres" id="17_a_walkf"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_WalkB.tres" id="18_a_walkb"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Crouch.tres" id="19_a_crouch"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Punch.tres" id="20_a_punch"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Kick.tres" id="21_a_kick"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_PunchHeavy.tres" id="22_a_punchh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_KickHeavy.tres" id="23_a_kickh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Fireball.tres" id="24_a_fire"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_FlashKick.tres" id="25_a_flash"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_BlockH.tres" id="26_a_blockh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_BlockL.tres" id="27_a_blockl"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_BlockA.tres" id="28_a_blocka"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Tech.tres" id="29_a_tech"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Recovery.tres" id="30_a_recover"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Behaviors/Behavior_3D_Easy.tres" id="31_behav_easy"]
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Components/FrameTimer.cs" id="100_timer"]
+
+[node name="KRISTEN" type="Node3D" node_paths=PackedStringArray("Body", "Inputs", "Variables", "Animator", "Stance", "Tracker", "Brain", "HitStun", "HitStop", "MoveBuffer", "PushForce", "HorizontalBounce", "VerticalBounce")]
+script = ExtResource("1_fighter")
+Body = NodePath("PhysicsBody")
+Inputs = NodePath("InputManager")
+Variables = NodePath("FighterVariables")
+Animator = NodePath("FrameAnimator")
+Stance = NodePath("StanceManager")
+Tracker = NodePath("CombatTracker")
+Brain = NodePath("AIBrain")
+
+[node name="PhysicsBody" type="Node" parent="."]
+script = ExtResource("2_phys")
+StayOnBounds = true
+HitboxPresets = []
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="Model" parent="Visuals" instance=ExtResource("3_model")]
+
+[node name="FrameAnimator" type="Node" parent="." node_paths=PackedStringArray("players")]
+script = ExtResource("4_anim")
+players = [NodePath("../Visuals/Model/AnimationPlayer")]
+prefix = [""]
+States = [ExtResource("5_s_idle"), ExtResource("6_s_walkf"), ExtResource("7_s_walkb"), ExtResource("8_s_crouch"), ExtResource("9_s_stepb")]
+
+[node name="StanceManager" type="Node" parent="."]
+script = ExtResource("10_stance")
+Stances = [ExtResource("11_basic_stance")]
+
+[node name="InputManager" type="Node" parent="."]
+script = ExtResource("12_input")
+
+[node name="CombatTracker" type="Node" parent="."]
+script = ExtResource("13_track")
+
+[node name="FighterVariables" type="Node" parent="."]
+script = ExtResource("14_vars")
+
+[node name="AIBrain" type="Node" parent="."]
+script = ExtResource("15_ai")
+Actions = [ExtResource("16_a_idle"), ExtResource("17_a_walkf"), ExtResource("18_a_walkb"), ExtResource("19_a_crouch"), ExtResource("20_a_punch"), ExtResource("21_a_kick"), ExtResource("22_a_punchh"), ExtResource("23_a_kickh"), ExtResource("24_a_fire"), ExtResource("25_a_flash"), ExtResource("26_a_blockh"), ExtResource("27_a_blockl"), ExtResource("28_a_blocka"), ExtResource("29_a_tech"), ExtResource("30_a_recover")]
+HighBlockAction = 10
+LowBlockAction = 11
+ForwardRecoveryAction = 14
+BackRecoveryAction = 14
+ThrowEscapeAction = 13
+BehaviorBeginner = ExtResource("31_behav_easy")
+BehaviorEasy = ExtResource("31_behav_easy")
+BehaviorMedium = ExtResource("31_behav_easy")
+BehaviorHard = ExtResource("31_behav_easy")
+BehaviorVeryHard = ExtResource("31_behav_easy")
+BehaviorPro = ExtResource("31_behav_easy")
+
+[node name="HitStun" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[node name="HitStop" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[node name="MoveBuffer" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[node name="PushForce" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[node name="HorizontalBounce" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[node name="VerticalBounce" type="Node" parent="."]
+script = ExtResource("100_timer")
+
+[editable path="Visuals/Model"]

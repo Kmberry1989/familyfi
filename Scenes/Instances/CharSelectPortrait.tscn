@@ -1,0 +1,77 @@
+[gd_scene load_steps=5 format=3 uid="uid://dw8jr0o1wc7hl"]
+
+[ext_resource type="Script" uid="uid://dphxp345wbgnk" path="res://Scripts/SakugaEngine/UI/CharSelectButton.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c151xcdhytol6" path="res://Sprites/Icons/Portraits/HOVERED.png" id="2_hover"]
+[ext_resource type="Texture2D" uid="uid://btrqf0sppcg8m" path="res://Sprites/Icons/Portraits/SELECTED.png" id="3_select"]
+
+[node name="Control" type="TextureRect" node_paths=PackedStringArray("hoverBackground", "selectionFlash")]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = -125.0
+offset_right = 125.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(125, 125)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("1_script")
+hoverBackground = NodePath("HoverBase")
+selectionFlash = NodePath("SelectedFlash")
+
+[node name="HoverBase" type="TextureRect" parent="."]
+visible = false
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_hover")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Portrait" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SelectedFlash" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_select")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Frame" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -65.0
+offset_top = -65.0
+offset_right = 65.0
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch_mode = 4

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AIAction" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/AI/AIAction.cs" id="1_action"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Inputs/Input_Down.tres" id="2_down"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Inputs/Input_DownForward.tres" id="3_df"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Inputs/Input_ForwardPunch.tres" id="4_fp"]
+
+[resource]
+script = ExtResource("1_action")
+InputName = "Fireball"
+Inputs = [ExtResource("2_down"), ExtResource("3_df"), ExtResource("4_fp")]
+AutoAdvance = true

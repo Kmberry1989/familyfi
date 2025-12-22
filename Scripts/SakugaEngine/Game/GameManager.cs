@@ -148,7 +148,7 @@ namespace SakugaEngine.Game
             //AI test (select it in a better way later)
             Fighters[0].UseAI = Global.Match.Player1.selectedDevice == -1;
             Fighters[1].UseAI = Global.Match.Player2.selectedDevice == -1;
-            bool touchInputAvailable = TouchInput != null && TouchInput.IsVisibleInTree() && OS.HasTouchscreenUiHint();
+            bool touchInputAvailable = TouchInput != null && TouchInput.IsVisibleInTree() && DisplayServer.IsTouchscreenAvailable();
             GD.Print($"Setup: P1 Device={Global.Match.Player1.selectedDevice}, P2 Device={Global.Match.Player2.selectedDevice}. Touch Controls Available: {touchInputAvailable}.");
 
             GenerateBaseSeed();
@@ -325,7 +325,7 @@ namespace SakugaEngine.Game
             if (Input.IsActionPressed(prexif + "_macro_abcd"))
                 input |= Global.INPUT_FACE_A | Global.INPUT_FACE_B | Global.INPUT_FACE_C | Global.INPUT_FACE_D;*/
 
-            bool useTouch = OS.HasTouchscreenUiHint();
+            bool useTouch = DisplayServer.IsTouchscreenAvailable();
             if (TouchInput != null && TouchInput.IsVisibleInTree() && useTouch)
             {
                 ushort touchData = TouchInput.GetInput();

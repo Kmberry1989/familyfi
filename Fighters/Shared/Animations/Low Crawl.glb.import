@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://drs0j523q6hg2"
-path="res://.godot/imported/Low Crawl.glb-6e0358aed6dd6a87a1a1f121dbb411c0.scn"
+path="res://.godot/imported/Low Crawl.glb-6e0358aed6dd6a87a1a1f121dbb411c0.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Low Crawl.glb"
-dest_files=["res://.godot/imported/Low Crawl.glb-6e0358aed6dd6a87a1a1f121dbb411c0.scn"]
+dest_files=["res://.godot/imported/Low Crawl.glb-6e0358aed6dd6a87a1a1f121dbb411c0.res"]
 
 [params]
 

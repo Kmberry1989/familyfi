@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://f1vno4bmis4c"
-path="res://.godot/imported/Jump (1).glb-168217228ea214cf19d70df8f6c28688.scn"
+path="res://.godot/imported/Jump (1).glb-168217228ea214cf19d70df8f6c28688.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Jump (1).glb"
-dest_files=["res://.godot/imported/Jump (1).glb-168217228ea214cf19d70df8f6c28688.scn"]
+dest_files=["res://.godot/imported/Jump (1).glb-168217228ea214cf19d70df8f6c28688.res"]
 
 [params]
 

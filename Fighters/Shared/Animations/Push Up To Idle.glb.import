@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cixm4qmi1vh4c"
-path="res://.godot/imported/Push Up To Idle.glb-0999313ca0c77e59f6231f4dac1d3160.scn"
+path="res://.godot/imported/Push Up To Idle.glb-0999313ca0c77e59f6231f4dac1d3160.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Push Up To Idle.glb"
-dest_files=["res://.godot/imported/Push Up To Idle.glb-0999313ca0c77e59f6231f4dac1d3160.scn"]
+dest_files=["res://.godot/imported/Push Up To Idle.glb-0999313ca0c77e59f6231f4dac1d3160.res"]
 
 [params]
 

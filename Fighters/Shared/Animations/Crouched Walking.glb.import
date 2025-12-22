@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://8qo8rkc1vimx"
-path="res://.godot/imported/Crouched Walking.glb-3d59e146403d8ee55077b4fb86dc4b9c.scn"
+path="res://.godot/imported/Crouched Walking.glb-3d59e146403d8ee55077b4fb86dc4b9c.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Crouched Walking.glb"
-dest_files=["res://.godot/imported/Crouched Walking.glb-3d59e146403d8ee55077b4fb86dc4b9c.scn"]
+dest_files=["res://.godot/imported/Crouched Walking.glb-3d59e146403d8ee55077b4fb86dc4b9c.res"]
 
 [params]
 

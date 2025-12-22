@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://dswo300h5eu1r"
-path="res://.godot/imported/Laughing.glb-911d3246503227527dce3ff6ace1b9b0.scn"
+path="res://.godot/imported/Laughing.glb-911d3246503227527dce3ff6ace1b9b0.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Laughing.glb"
-dest_files=["res://.godot/imported/Laughing.glb-911d3246503227527dce3ff6ace1b9b0.scn"]
+dest_files=["res://.godot/imported/Laughing.glb-911d3246503227527dce3ff6ace1b9b0.res"]
 
 [params]
 

@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cxcda0y1q7j0v"
-path="res://.godot/imported/Dodging Right.glb-250864945a70e5e85a7975bad32aa171.scn"
+path="res://.godot/imported/Dodging Right.glb-250864945a70e5e85a7975bad32aa171.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Dodging Right.glb"
-dest_files=["res://.godot/imported/Dodging Right.glb-250864945a70e5e85a7975bad32aa171.scn"]
+dest_files=["res://.godot/imported/Dodging Right.glb-250864945a70e5e85a7975bad32aa171.res"]
 
 [params]
 

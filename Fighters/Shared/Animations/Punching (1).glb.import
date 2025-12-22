@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cqap0uhf5ce8j"
-path="res://.godot/imported/Punching (1).glb-ca195b4b775a6cab017014273249eebd.scn"
+path="res://.godot/imported/Punching (1).glb-ca195b4b775a6cab017014273249eebd.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Punching (1).glb"
-dest_files=["res://.godot/imported/Punching (1).glb-ca195b4b775a6cab017014273249eebd.scn"]
+dest_files=["res://.godot/imported/Punching (1).glb-ca195b4b775a6cab017014273249eebd.res"]
 
 [params]
 

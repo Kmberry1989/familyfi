@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://dkxlfscduk5xy"
-path="res://.godot/imported/Being Cocky.glb-eebfd827d3a15ddbb66413b66528b8a3.scn"
+path="res://.godot/imported/Being Cocky.glb-eebfd827d3a15ddbb66413b66528b8a3.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Being Cocky.glb"
-dest_files=["res://.godot/imported/Being Cocky.glb-eebfd827d3a15ddbb66413b66528b8a3.scn"]
+dest_files=["res://.godot/imported/Being Cocky.glb-eebfd827d3a15ddbb66413b66528b8a3.res"]
 
 [params]
 

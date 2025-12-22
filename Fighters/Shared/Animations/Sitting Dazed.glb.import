@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://6uixpkyuclm"
-path="res://.godot/imported/Sitting Dazed.glb-e2344adf7fdf3dc42e7245b1aafabc93.scn"
+path="res://.godot/imported/Sitting Dazed.glb-e2344adf7fdf3dc42e7245b1aafabc93.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Sitting Dazed.glb"
-dest_files=["res://.godot/imported/Sitting Dazed.glb-e2344adf7fdf3dc42e7245b1aafabc93.scn"]
+dest_files=["res://.godot/imported/Sitting Dazed.glb-e2344adf7fdf3dc42e7245b1aafabc93.res"]
 
 [params]
 

@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://dt7w7kvp7g33m"
-path="res://.godot/imported/Dying.glb-eaa658e7ea487116d54a5d1211d94fe7.scn"
+path="res://.godot/imported/Dying.glb-eaa658e7ea487116d54a5d1211d94fe7.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Dying.glb"
-dest_files=["res://.godot/imported/Dying.glb-eaa658e7ea487116d54a5d1211d94fe7.scn"]
+dest_files=["res://.godot/imported/Dying.glb-eaa658e7ea487116d54a5d1211d94fe7.res"]
 
 [params]
 

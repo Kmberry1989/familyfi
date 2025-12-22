@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://briigbt2m88tf"
-path="res://.godot/imported/Stand Up.glb-52b8193f66dc12190d4f3836199179c2.scn"
+path="res://.godot/imported/Stand Up.glb-52b8193f66dc12190d4f3836199179c2.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Stand Up.glb"
-dest_files=["res://.godot/imported/Stand Up.glb-52b8193f66dc12190d4f3836199179c2.scn"]
+dest_files=["res://.godot/imported/Stand Up.glb-52b8193f66dc12190d4f3836199179c2.res"]
 
 [params]
 

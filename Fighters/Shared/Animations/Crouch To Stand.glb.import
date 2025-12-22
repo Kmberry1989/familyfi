@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://brq4g7s7u2lps"
-path="res://.godot/imported/Crouch To Stand.glb-8bafa171bcc90c6b5c964ef9c94a0629.scn"
+path="res://.godot/imported/Crouch To Stand.glb-8bafa171bcc90c6b5c964ef9c94a0629.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Crouch To Stand.glb"
-dest_files=["res://.godot/imported/Crouch To Stand.glb-8bafa171bcc90c6b5c964ef9c94a0629.scn"]
+dest_files=["res://.godot/imported/Crouch To Stand.glb-8bafa171bcc90c6b5c964ef9c94a0629.res"]
 
 [params]
 

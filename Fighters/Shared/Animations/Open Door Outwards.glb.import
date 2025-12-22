@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://njeneb521q4y"
-path="res://.godot/imported/Open Door Outwards.glb-0ad240283659b3cad630ad1424776a21.scn"
+path="res://.godot/imported/Open Door Outwards.glb-0ad240283659b3cad630ad1424776a21.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Open Door Outwards.glb"
-dest_files=["res://.godot/imported/Open Door Outwards.glb-0ad240283659b3cad630ad1424776a21.scn"]
+dest_files=["res://.godot/imported/Open Door Outwards.glb-0ad240283659b3cad630ad1424776a21.res"]
 
 [params]
 

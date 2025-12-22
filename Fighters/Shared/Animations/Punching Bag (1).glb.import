@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bd5csskvmbv5j"
-path="res://.godot/imported/Punching Bag (1).glb-3d0f6a2a73c6cf9b62d46747eefc7554.scn"
+path="res://.godot/imported/Punching Bag (1).glb-3d0f6a2a73c6cf9b62d46747eefc7554.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Punching Bag (1).glb"
-dest_files=["res://.godot/imported/Punching Bag (1).glb-3d0f6a2a73c6cf9b62d46747eefc7554.scn"]
+dest_files=["res://.godot/imported/Punching Bag (1).glb-3d0f6a2a73c6cf9b62d46747eefc7554.res"]
 
 [params]
 

@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://ujw4am0qdr58"
-path="res://.godot/imported/Joyful Jump.glb-9cddc0692b9038e4103493be7b823ed7.scn"
+path="res://.godot/imported/Joyful Jump.glb-9cddc0692b9038e4103493be7b823ed7.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Joyful Jump.glb"
-dest_files=["res://.godot/imported/Joyful Jump.glb-9cddc0692b9038e4103493be7b823ed7.scn"]
+dest_files=["res://.godot/imported/Joyful Jump.glb-9cddc0692b9038e4103493be7b823ed7.res"]
 
 [params]
 

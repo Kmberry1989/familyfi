@@ -404,39 +404,47 @@ namespace SakugaEngine.Game
 
             foreach (var kvp in animMap)
             {
-                var scene = GD.Load<PackedScene>(kvp.Value);
-                if (scene == null)
+                var loadedRes = GD.Load(kvp.Value);
+                if (loadedRes == null)
                 {
-                    GD.PrintErr($"[InjectSharedAnimations] Failed to load scene: {kvp.Value}");
+                    GD.PrintErr($"[InjectSharedAnimations] Failed to load resource: {kvp.Value}");
                     continue;
                 }
-                var instance = scene.Instantiate();
-                // Try finding AnimationPlayer. GLTF import often names it "AnimationPlayer".
-                var sourcePlayer = instance.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
-                if (sourcePlayer == null)
+
+                Animation startAnim = null;
+                Node tempNode = null;
+                AnimationPlayer sourcePlayer = null;
+
+                if (loadedRes is PackedScene packedScene)
                 {
-                    // Fallback check children
-                    foreach (var child in instance.GetChildren())
+                    tempNode = packedScene.Instantiate();
+                    sourcePlayer = tempNode.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+                    if (sourcePlayer == null)
                     {
-                        if (child is AnimationPlayer ap) { sourcePlayer = ap; break; }
+                        foreach (var child in tempNode.GetChildren())
+                        {
+                            if (child is AnimationPlayer ap) { sourcePlayer = ap; break; }
+                        }
+                    }
+                    if (sourcePlayer != null)
+                    {
+                        var animList = sourcePlayer.GetAnimationList();
+                        if (animList.Length > 0) startAnim = sourcePlayer.GetAnimation(animList[0]);
                     }
                 }
-
-                if (sourcePlayer != null)
+                else if (loadedRes is AnimationLibrary animLib)
                 {
-                    var animList = sourcePlayer.GetAnimationList();
-                    if (animList.Length > 0)
-                    {
-                        var animName = animList[0];
-                        GD.Print($"[InjectSharedAnimations] Found animation '{animName}' in {kvp.Value}");
-                        var anim = sourcePlayer.GetAnimation(animName);
-                        var animDup = (Animation)anim.Duplicate();
-                        animDup.LoopMode = Animation.LoopModeEnum.Linear;
+                    var animList = animLib.GetAnimationList();
+                    if (animList.Count > 0) startAnim = animLib.GetAnimation(animList[0]);
+                }
 
-                        // Retarget tracks to the fighter's AnimationPlayer root so bones actually move.
-                        // When importing Mixamo GLBs the animation tracks are usually authored relative to the
-                        // GLB scene root. If we copy them directly, the paths won't match the fighter model and
-                        // the character stays in a T-pose. Aligning the track paths fixes the mapping.
+                if (startAnim != null)
+                {
+                    var animDup = (Animation)startAnim.Duplicate();
+                    animDup.LoopMode = Animation.LoopModeEnum.Linear;
+
+                    if (sourcePlayer != null)
+                    {
                         var sourceRoot = sourcePlayer.RootNode.ToString();
                         var targetRoot = targetPlayer.RootNode.ToString();
                         if (!string.IsNullOrEmpty(sourceRoot) && !string.IsNullOrEmpty(targetRoot) && sourceRoot != targetRoot)
@@ -451,17 +459,18 @@ namespace SakugaEngine.Game
                                 }
                             }
                         }
-
-                        if (library.HasAnimation(kvp.Key))
-                            library.RemoveAnimation(kvp.Key);
-                        library.AddAnimation(kvp.Key, animDup);
-                        GD.Print($"[InjectSharedAnimations] Injected '{kvp.Key}' successfully.");
                     }
-                    else GD.PrintErr($"[InjectSharedAnimations] Source player has NO animations in {kvp.Value}");
-                }
-                else GD.PrintErr($"[InjectSharedAnimations] No AnimationPlayer found in {kvp.Value}");
 
-                instance.Free();
+                    if (library.HasAnimation(kvp.Key)) library.RemoveAnimation(kvp.Key);
+                    library.AddAnimation(kvp.Key, animDup);
+                    GD.Print($"[InjectSharedAnimations] Injected '{kvp.Key}' successfully.");
+                }
+                else
+                {
+                    GD.PrintErr($"[InjectSharedAnimations] Could not find animation in {kvp.Value}");
+                }
+
+                if (tempNode != null) tempNode.Free();
             }
             GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", targetPlayer.GetAnimationList())}");
         }

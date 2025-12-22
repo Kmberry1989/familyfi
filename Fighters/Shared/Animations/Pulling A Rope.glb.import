@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bmouo26ncmgxu"
-path="res://.godot/imported/Pulling A Rope.glb-a03ab0a8073c860d64adb75b9a0d07b5.scn"
+path="res://.godot/imported/Pulling A Rope.glb-a03ab0a8073c860d64adb75b9a0d07b5.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Pulling A Rope.glb"
-dest_files=["res://.godot/imported/Pulling A Rope.glb-a03ab0a8073c860d64adb75b9a0d07b5.scn"]
+dest_files=["res://.godot/imported/Pulling A Rope.glb-a03ab0a8073c860d64adb75b9a0d07b5.res"]
 
 [params]
 

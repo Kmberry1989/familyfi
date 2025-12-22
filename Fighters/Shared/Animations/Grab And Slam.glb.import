@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://8ifwkeh6xgsg"
-path="res://.godot/imported/Grab And Slam.glb-023d3e960f3c105f73504227149eeb7e.scn"
+path="res://.godot/imported/Grab And Slam.glb-023d3e960f3c105f73504227149eeb7e.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Grab And Slam.glb"
-dest_files=["res://.godot/imported/Grab And Slam.glb-023d3e960f3c105f73504227149eeb7e.scn"]
+dest_files=["res://.godot/imported/Grab And Slam.glb-023d3e960f3c105f73504227149eeb7e.res"]
 
 [params]
 

@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://csavgc5cxvq2"
-path="res://.godot/imported/Jumping Down.glb-dc7a16110ee0aec3a3cfa0f06cf8becc.scn"
+path="res://.godot/imported/Jumping Down.glb-dc7a16110ee0aec3a3cfa0f06cf8becc.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Jumping Down.glb"
-dest_files=["res://.godot/imported/Jumping Down.glb-dc7a16110ee0aec3a3cfa0f06cf8becc.scn"]
+dest_files=["res://.godot/imported/Jumping Down.glb-dc7a16110ee0aec3a3cfa0f06cf8becc.res"]
 
 [params]
 

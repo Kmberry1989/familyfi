@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bsax3dk6anj36"
-path="res://.godot/imported/Fist Fight A.glb-42f5381f54fb35cf061b8691cd81dcbd.scn"
+path="res://.godot/imported/Fist Fight A.glb-42f5381f54fb35cf061b8691cd81dcbd.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Fist Fight A.glb"
-dest_files=["res://.godot/imported/Fist Fight A.glb-42f5381f54fb35cf061b8691cd81dcbd.scn"]
+dest_files=["res://.godot/imported/Fist Fight A.glb-42f5381f54fb35cf061b8691cd81dcbd.res"]
 
 [params]
 

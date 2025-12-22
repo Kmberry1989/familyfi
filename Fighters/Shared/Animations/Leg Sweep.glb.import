@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://dy0p2nlcvvxpm"
-path="res://.godot/imported/Leg Sweep.glb-d67e3fe3c6efa1a026afc6813f08dc63.scn"
+path="res://.godot/imported/Leg Sweep.glb-d67e3fe3c6efa1a026afc6813f08dc63.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Leg Sweep.glb"
-dest_files=["res://.godot/imported/Leg Sweep.glb-d67e3fe3c6efa1a026afc6813f08dc63.scn"]
+dest_files=["res://.godot/imported/Leg Sweep.glb-d67e3fe3c6efa1a026afc6813f08dc63.res"]
 
 [params]
 

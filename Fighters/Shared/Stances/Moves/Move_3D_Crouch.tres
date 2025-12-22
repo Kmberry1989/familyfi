@@ -1,16 +1,14 @@
-[gd_resource type="Resource" script_class="MoveSettings" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="MoveSettings" load_steps=8 format=3 uid="uid://st53yp66w42u"]
 
-[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/InputSequence.cs" id="1_seq"]
-[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/InputOption.cs" id="2_opt"]
-[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/MotionInputs.cs" id="3_mot"]
-[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/MoveSettings.cs" id="4_ovr"]
+[ext_resource type="Script" uid="uid://87xpa7lbksa8" path="res://Scripts/SakugaEngine/Resources/InputSequence.cs" id="1_seq"]
+[ext_resource type="Script" uid="uid://ce6shsv0dij5v" path="res://Scripts/SakugaEngine/Resources/InputOption.cs" id="2_opt"]
+[ext_resource type="Script" uid="uid://di4jwsd3y2x8w" path="res://Scripts/SakugaEngine/Resources/MotionInputs.cs" id="3_mot"]
+[ext_resource type="Script" uid="uid://gk1rkw667o4n" path="res://Scripts/SakugaEngine/Resources/MoveSettings.cs" id="4_ovr"]
 
 [sub_resource type="Resource" id="Resource_seq"]
 script = ExtResource("1_seq")
 Directional = 1
 DirectionalMode = 1
-Buttons = 0
-ButtonMode = 0
 
 [sub_resource type="Resource" id="Resource_opt"]
 script = ExtResource("2_opt")
@@ -19,22 +17,12 @@ Inputs = [SubResource("Resource_seq")]
 [sub_resource type="Resource" id="Resource_mot"]
 script = ExtResource("3_mot")
 ValidInputs = [SubResource("Resource_opt")]
-AbsoluteDirection = false
-InputBuffer = 8
-DirectionalChargeLimit = 0
-ButtonChargeLimit = 0
 
 [resource]
 script = ExtResource("4_ovr")
 MoveName = "Crouch"
 MoveState = 3
 Inputs = SubResource("Resource_mot")
-SideChange = 0
-SuperGaugeRequired = 0
-BuildSuperGauge = 0
-HealthThreshold = Vector2i(0, 99999)
-SpendHealth = 0
-DistanceArea = Vector2i(0, 999999)
 IsSequenceFromStates = null
 IgnoreStates = null
 CancelsTo = null
@@ -43,16 +31,4 @@ buttonChargeSequence = null
 ExtraVariablesRequirement = null
 ExtraVariablesChange = null
 MoveEnd = 1
-MoveEndState = -1
-ChangeStance = -1
-FrameLimit = -1
-SuperFlash = 0
-Priority = 0
-CanBeOverrided = false
-CanOverrideToSelf = false
-IgnoreSamePriority = true
-InterruptCornerPushback = false
-PriorityBuffer = false
-WaitForNullStates = true
 UseOnGround = true
-UseOnAir = false

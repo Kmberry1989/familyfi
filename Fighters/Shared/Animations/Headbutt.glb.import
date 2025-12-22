@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cdg5yw3aunflr"
-path="res://.godot/imported/Headbutt.glb-0e5d986690f4a3462488ca1bdea946ef.scn"
+path="res://.godot/imported/Headbutt.glb-0e5d986690f4a3462488ca1bdea946ef.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Headbutt.glb"
-dest_files=["res://.godot/imported/Headbutt.glb-0e5d986690f4a3462488ca1bdea946ef.scn"]
+dest_files=["res://.godot/imported/Headbutt.glb-0e5d986690f4a3462488ca1bdea946ef.res"]
 
 [params]
 

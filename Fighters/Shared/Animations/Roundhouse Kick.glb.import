@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://croetq540gal3"
-path="res://.godot/imported/Roundhouse Kick.glb-3a71c19914e8704774bd88caff046fdb.scn"
+path="res://.godot/imported/Roundhouse Kick.glb-3a71c19914e8704774bd88caff046fdb.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Roundhouse Kick.glb"
-dest_files=["res://.godot/imported/Roundhouse Kick.glb-3a71c19914e8704774bd88caff046fdb.scn"]
+dest_files=["res://.godot/imported/Roundhouse Kick.glb-3a71c19914e8704774bd88caff046fdb.res"]
 
 [params]
 

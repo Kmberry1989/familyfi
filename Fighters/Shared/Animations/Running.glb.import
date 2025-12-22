@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://vexlcmn0ub5c"
-path="res://.godot/imported/Running.glb-5b4af778d0f836c851a6cc8ef5180ca8.scn"
+path="res://.godot/imported/Running.glb-5b4af778d0f836c851a6cc8ef5180ca8.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Running.glb"
-dest_files=["res://.godot/imported/Running.glb-5b4af778d0f836c851a6cc8ef5180ca8.scn"]
+dest_files=["res://.godot/imported/Running.glb-5b4af778d0f836c851a6cc8ef5180ca8.res"]
 
 [params]
 

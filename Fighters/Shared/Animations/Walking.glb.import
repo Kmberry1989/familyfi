@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bt87t534y4oy0"
-path="res://.godot/imported/Walking.glb-38bda3d1a3b8ded619950f175b58ced8.scn"
+path="res://.godot/imported/Walking.glb-38bda3d1a3b8ded619950f175b58ced8.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Walking.glb"
-dest_files=["res://.godot/imported/Walking.glb-38bda3d1a3b8ded619950f175b58ced8.scn"]
+dest_files=["res://.godot/imported/Walking.glb-38bda3d1a3b8ded619950f175b58ced8.res"]
 
 [params]
 

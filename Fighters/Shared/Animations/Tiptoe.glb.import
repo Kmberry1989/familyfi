@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://vqgapqv2payp"
-path="res://.godot/imported/Tiptoe.glb-9d9c2c49550aee8c5fd3812cf90221f7.scn"
+path="res://.godot/imported/Tiptoe.glb-9d9c2c49550aee8c5fd3812cf90221f7.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Tiptoe.glb"
-dest_files=["res://.godot/imported/Tiptoe.glb-9d9c2c49550aee8c5fd3812cf90221f7.scn"]
+dest_files=["res://.godot/imported/Tiptoe.glb-9d9c2c49550aee8c5fd3812cf90221f7.res"]
 
 [params]
 

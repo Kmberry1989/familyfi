@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bbjhr3km6nb0k"
-path="res://.godot/imported/Catwalk Walk Turn 180 Tight.glb-a413433c922e23e3b3b474207eab44e6.scn"
+path="res://.godot/imported/Catwalk Walk Turn 180 Tight.glb-a413433c922e23e3b3b474207eab44e6.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Catwalk Walk Turn 180 Tight.glb"
-dest_files=["res://.godot/imported/Catwalk Walk Turn 180 Tight.glb-a413433c922e23e3b3b474207eab44e6.scn"]
+dest_files=["res://.godot/imported/Catwalk Walk Turn 180 Tight.glb-a413433c922e23e3b3b474207eab44e6.res"]
 
 [params]
 

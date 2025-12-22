@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://c5deidcg3jq76"
-path="res://.godot/imported/Rumba Dancing.glb-c6c46abc55d16ca945a4ee7cb68353e1.scn"
+path="res://.godot/imported/Rumba Dancing.glb-c6c46abc55d16ca945a4ee7cb68353e1.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Rumba Dancing.glb"
-dest_files=["res://.godot/imported/Rumba Dancing.glb-c6c46abc55d16ca945a4ee7cb68353e1.scn"]
+dest_files=["res://.godot/imported/Rumba Dancing.glb-c6c46abc55d16ca945a4ee7cb68353e1.res"]
 
 [params]
 

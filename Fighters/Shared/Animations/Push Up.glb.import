@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://mbd08a787o1v"
-path="res://.godot/imported/Push Up.glb-6e61e7b5ff8f10afe17d3755331af5a5.scn"
+path="res://.godot/imported/Push Up.glb-6e61e7b5ff8f10afe17d3755331af5a5.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Push Up.glb"
-dest_files=["res://.godot/imported/Push Up.glb-6e61e7b5ff8f10afe17d3755331af5a5.scn"]
+dest_files=["res://.godot/imported/Push Up.glb-6e61e7b5ff8f10afe17d3755331af5a5.res"]
 
 [params]
 

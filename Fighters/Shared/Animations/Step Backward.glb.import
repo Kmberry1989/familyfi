@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://b2gs27tvk1ab"
-path="res://.godot/imported/Step Backward.glb-243d2311d09eb34659e358e4a7d52912.scn"
+path="res://.godot/imported/Step Backward.glb-243d2311d09eb34659e358e4a7d52912.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Step Backward.glb"
-dest_files=["res://.godot/imported/Step Backward.glb-243d2311d09eb34659e358e4a7d52912.scn"]
+dest_files=["res://.godot/imported/Step Backward.glb-243d2311d09eb34659e358e4a7d52912.res"]
 
 [params]
 

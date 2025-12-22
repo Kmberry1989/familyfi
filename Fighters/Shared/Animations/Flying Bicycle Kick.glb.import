@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://dxud0x8c6t5ad"
-path="res://.godot/imported/Flying Bicycle Kick.glb-890584e92abcbb67153d592ff2ced290.scn"
+path="res://.godot/imported/Flying Bicycle Kick.glb-890584e92abcbb67153d592ff2ced290.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Flying Bicycle Kick.glb"
-dest_files=["res://.godot/imported/Flying Bicycle Kick.glb-890584e92abcbb67153d592ff2ced290.scn"]
+dest_files=["res://.godot/imported/Flying Bicycle Kick.glb-890584e92abcbb67153d592ff2ced290.res"]
 
 [params]
 

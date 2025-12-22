@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cpcc0buuo5dr7"
-path="res://.godot/imported/Kicking 3.glb-e39cade04930600c09bcc8394ac01169.scn"
+path="res://.godot/imported/Kicking 3.glb-e39cade04930600c09bcc8394ac01169.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Kicking 3.glb"
-dest_files=["res://.godot/imported/Kicking 3.glb-e39cade04930600c09bcc8394ac01169.scn"]
+dest_files=["res://.godot/imported/Kicking 3.glb-e39cade04930600c09bcc8394ac01169.res"]
 
 [params]
 

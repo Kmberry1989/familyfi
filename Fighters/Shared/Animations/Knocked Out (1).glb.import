@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cgq5pjegmjf7n"
-path="res://.godot/imported/Knocked Out (1).glb-ba99f46b34dd81411eb3a251d9b6e852.scn"
+path="res://.godot/imported/Knocked Out (1).glb-ba99f46b34dd81411eb3a251d9b6e852.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Knocked Out (1).glb"
-dest_files=["res://.godot/imported/Knocked Out (1).glb-ba99f46b34dd81411eb3a251d9b6e852.scn"]
+dest_files=["res://.godot/imported/Knocked Out (1).glb-ba99f46b34dd81411eb3a251d9b6e852.res"]
 
 [params]
 

@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://crvjnh77o3v2d"
-path="res://.godot/imported/Defeated.glb-2e7d98667a260e598debd4021fd088dc.scn"
+path="res://.godot/imported/Defeated.glb-2e7d98667a260e598debd4021fd088dc.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Defeated.glb"
-dest_files=["res://.godot/imported/Defeated.glb-2e7d98667a260e598debd4021fd088dc.scn"]
+dest_files=["res://.godot/imported/Defeated.glb-2e7d98667a260e598debd4021fd088dc.res"]
 
 [params]
 

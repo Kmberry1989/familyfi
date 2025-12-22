@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://cosw6ptk2qrbq"
-path="res://.godot/imported/Bouncing Fight Idle.glb-cba698ab6c43e9854455f0330fb1ac8a.scn"
+path="res://.godot/imported/Bouncing Fight Idle.glb-cba698ab6c43e9854455f0330fb1ac8a.res"
 
 [deps]
 
 source_file="res://Fighters/Shared/Animations/Bouncing Fight Idle.glb"
-dest_files=["res://.godot/imported/Bouncing Fight Idle.glb-cba698ab6c43e9854455f0330fb1ac8a.scn"]
+dest_files=["res://.godot/imported/Bouncing Fight Idle.glb-cba698ab6c43e9854455f0330fb1ac8a.res"]
 
 [params]
 

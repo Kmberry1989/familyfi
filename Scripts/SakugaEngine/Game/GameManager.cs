@@ -433,6 +433,25 @@ namespace SakugaEngine.Game
                         var animDup = (Animation)anim.Duplicate();
                         animDup.LoopMode = Animation.LoopModeEnum.Linear;
 
+                        // Retarget tracks to the fighter's AnimationPlayer root so bones actually move.
+                        // When importing Mixamo GLBs the animation tracks are usually authored relative to the
+                        // GLB scene root. If we copy them directly, the paths won't match the fighter model and
+                        // the character stays in a T-pose. Aligning the track paths fixes the mapping.
+                        var sourceRoot = sourcePlayer.RootNode.ToString();
+                        var targetRoot = targetPlayer.RootNode.ToString();
+                        if (!string.IsNullOrEmpty(sourceRoot) && !string.IsNullOrEmpty(targetRoot) && sourceRoot != targetRoot)
+                        {
+                            for (int track = 0; track < animDup.GetTrackCount(); track++)
+                            {
+                                var trackPath = animDup.TrackGetPath(track).ToString();
+                                if (trackPath.StartsWith(sourceRoot))
+                                {
+                                    var retargeted = trackPath.Replace(sourceRoot, targetRoot);
+                                    animDup.TrackSetPath(track, new NodePath(retargeted));
+                                }
+                            }
+                        }
+
                         if (library.HasAnimation(kvp.Key))
                             library.RemoveAnimation(kvp.Key);
                         library.AddAnimation(kvp.Key, animDup);

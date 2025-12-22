@@ -375,12 +375,12 @@ namespace SakugaEngine.UI
             if (ResourceLoader.Exists(p2Path))
             {
                 P2SelectedRender.Texture = ResourceLoader.Load<Texture2D>(p2Path);
-                // Removed FlipH as per user request for Select Screen
+                P2SelectedRender.FlipH = true;
             }
             else
             {
                 P2SelectedRender.Texture = fightersList.elements[P2Selected].Profile.Render; // Fallback
-                // Removed FlipH as per user request for Select Screen
+                P2SelectedRender.FlipH = true;
             }
 
             P2SelectedName.Text = fightersList.elements[P2Selected].Profile.FighterName;
@@ -471,6 +471,11 @@ namespace SakugaEngine.UI
                 {
                     P2ReadyRender.Texture = ResourceLoader.Load<Texture2D>(p2Path);
                     P2ReadyRender.FlipH = true; // KEEP THIS FLIP for VS Screen
+                }
+                else
+                {
+                    P2ReadyRender.Texture = fightersList.elements[P2Selected].Profile.Render;
+                    P2ReadyRender.FlipH = true;
                 }
 
                 // Fade In

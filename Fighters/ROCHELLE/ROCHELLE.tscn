@@ -1,4 +1,4 @@
-[gd_scene load_steps=50 format=3 uid="uid://bpjlbemm62nsw"]
+[gd_scene load_steps=64 format=3 uid="uid://bpjlbemm62nsw"]
 
 [ext_resource type="Script" uid="uid://bkhlpeqky2g1r" path="res://Scripts/SakugaEngine/Components/SakugaFighter.cs" id="1_fighter"]
 [ext_resource type="Script" uid="uid://hg0vcp1gy2ny" path="res://Scripts/SakugaEngine/Collision/PhysicsBody.cs" id="2_phys"]
@@ -15,6 +15,20 @@
 [ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Crouch.tres" id="8_s_crouch"]
 [ext_resource type="AnimationLibrary" uid="uid://cdg5yw3aunflr" path="res://Fighters/Shared/Animations/Headbutt.glb" id="9_dqjxx"]
 [ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_StepBack.tres" id="9_s_stepb"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Punch_A.tres" id="32_s_puncha"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Punch_Heavy.tres" id="33_s_punchh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Kick_A.tres" id="34_s_kicka"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Kick_Heavy.tres" id="35_s_kickh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Fireball.tres" id="36_s_fireball"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_FlashKick.tres" id="37_s_flashkick"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Light.tres" id="38_s_hitl"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Stun.tres" id="39_s_hits"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Hit_Heavy.tres" id="40_s_hith"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_GetUp.tres" id="41_s_getup"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_High.tres" id="42_s_blockh"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_Low.tres" id="43_s_blockl"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Block_Air.tres" id="44_s_blocka"]
+[ext_resource type="Resource" path="res://Fighters/Shared/States/State_3D_Death.tres" id="45_s_death"]
 [ext_resource type="AnimationLibrary" uid="uid://brcp2cqdak8vu" path="res://Fighters/Shared/Animations/Hook Punch.glb" id="10_dnhnr"]
 [ext_resource type="Script" uid="uid://c3t6wbsc2kmvs" path="res://Scripts/SakugaEngine/Components/StanceManager.cs" id="10_stance"]
 [ext_resource type="Resource" path="res://Fighters/Shared/Stances/Basic_3D_Stance.tres" id="11_basic_stance"]
@@ -523,7 +537,8 @@ libraries = {
 [node name="FrameAnimator" type="Node" parent="." node_paths=PackedStringArray("players")]
 script = ExtResource("4_anim")
 players = [NodePath("../Visuals/Model/AnimationPlayer")]
-States = [ExtResource("5_s_idle"), ExtResource("6_s_walkf"), ExtResource("7_s_walkb"), ExtResource("8_s_crouch"), ExtResource("9_s_stepb")]
+prefix = [""]
+States = [ExtResource("5_s_idle"), ExtResource("6_s_walkf"), ExtResource("7_s_walkb"), ExtResource("8_s_crouch"), ExtResource("9_s_stepb"), ExtResource("32_s_puncha"), ExtResource("33_s_punchh"), ExtResource("34_s_kicka"), ExtResource("35_s_kickh"), ExtResource("36_s_fireball"), ExtResource("37_s_flashkick"), ExtResource("38_s_hitl"), ExtResource("39_s_hits"), ExtResource("40_s_hith"), ExtResource("41_s_getup"), ExtResource("42_s_blockh"), ExtResource("43_s_blockl"), ExtResource("44_s_blocka"), ExtResource("45_s_death")]
 
 [node name="StanceManager" type="Node" parent="."]
 script = ExtResource("10_stance")

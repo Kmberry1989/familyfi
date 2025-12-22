@@ -148,7 +148,8 @@ namespace SakugaEngine.Game
             //AI test (select it in a better way later)
             Fighters[0].UseAI = Global.Match.Player1.selectedDevice == -1;
             Fighters[1].UseAI = Global.Match.Player2.selectedDevice == -1;
-            GD.Print($"Setup: P1 Device={Global.Match.Player1.selectedDevice}, P2 Device={Global.Match.Player2.selectedDevice}. P1 Forces Touch: True (Debug).");
+            bool touchInputAvailable = TouchInput != null && TouchInput.IsVisibleInTree() && OS.HasTouchscreenUiHint();
+            GD.Print($"Setup: P1 Device={Global.Match.Player1.selectedDevice}, P2 Device={Global.Match.Player2.selectedDevice}. Touch Controls Available: {touchInputAvailable}.");
 
             GenerateBaseSeed();
 
@@ -324,16 +325,7 @@ namespace SakugaEngine.Game
             if (Input.IsActionPressed(prexif + "_macro_abcd"))
                 input |= Global.INPUT_FACE_A | Global.INPUT_FACE_B | Global.INPUT_FACE_C | Global.INPUT_FACE_D;*/
 
-            bool useTouch = false;
-            // Original logic: P1 uses touch if device is 0?
-            // If device is -1 (AI), this is skipped.
-            // If device is 0 (P1), we check if they selected Touch.
-            // But we don't have device selection.
-            // Let's allow Touch ALWAYS for P1/P2 if the MobileControls are present.
-            // This is safer.
-            if (TouchInput != null && TouchInput.IsVisibleInTree()) useTouch = true;
-
-
+            bool useTouch = OS.HasTouchscreenUiHint();
             if (TouchInput != null && TouchInput.IsVisibleInTree() && useTouch)
             {
                 ushort touchData = TouchInput.GetInput();

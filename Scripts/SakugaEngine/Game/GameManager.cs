@@ -447,6 +447,7 @@ namespace SakugaEngine.Game
                                 if (trackPath.StartsWith(sourceRoot))
                                 {
                                     var retargeted = trackPath.Replace(sourceRoot, targetRoot);
+                                    animDup.TrackSetPath(track, new NodePath(retargeted));
                                     animDup.TrackSetPath(track, NodePath.FromStringName(retargeted));
                                 }
                             }

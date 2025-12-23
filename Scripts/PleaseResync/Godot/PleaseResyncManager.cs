@@ -24,7 +24,7 @@ namespace PleaseResync
         [Export] protected ushort SpectatorDelay = 30;
         [Export] public uint MaxPlayers = 2;
         [Export] public uint MaxSpectators = 8;
-        [Export] protected uint InputSize = 1;
+        [Export] protected uint InputSize = 2;
         private uint DEVICE_ID;
         private uint PingId;
 

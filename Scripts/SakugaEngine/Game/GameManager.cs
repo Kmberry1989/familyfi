@@ -202,6 +202,13 @@ namespace SakugaEngine.Game
 
         public void GameLoop(byte[] playerInput)
         {
+            int expectedInputSize = (int)(InputSize * Fighters.Length);
+            if (playerInput == null || playerInput.Length < expectedInputSize)
+            {
+                GD.PrintErr($"GameLoop: playerInput length ({playerInput?.Length ?? 0}) is smaller than expected ({expectedInputSize}).");
+                return;
+            }
+
             finalSeed = CalculateSeed();
             Global.UpdateRNG(finalSeed);
             Frame++;

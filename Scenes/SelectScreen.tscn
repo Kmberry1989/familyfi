@@ -160,7 +160,7 @@ offset_right = 197.0
 offset_bottom = 69.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 50
-text = "Character Select"
+text = " "
 horizontal_alignment = 1
 
 [node name="P1SelectedName" type="Label" parent="CharacterSelect"]

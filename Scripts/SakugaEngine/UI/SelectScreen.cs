@@ -63,6 +63,8 @@ namespace SakugaEngine.UI
         private double cpuMoveTimer = 0.0f;
         private double cpuSelectionDuration = 2.0f;
 
+        private const double CpuHoverInterval = 0.25f;
+
         private System.Random randomSelection;
 
         public override void _Ready()
@@ -107,6 +109,36 @@ namespace SakugaEngine.UI
                 stageSelectionButtons[i + 2] = temp;
                 stagesContainer.AddChild(temp);
             }
+
+            StartCpuSelection();
+        }
+
+        private void StartCpuSelection()
+        {
+            if (characterButtons != null && P2Selected < characterButtons.Length)
+            {
+                characterButtons[P2Selected].IsSelected = false;
+            }
+
+            isCpuSelecting = true;
+            P2Finished = false;
+            cpuSelectionTimer = 0.0f;
+            cpuMoveTimer = 0.0f;
+            P2Selected = GetCpuRandomSelection();
+        }
+
+        private int GetCpuRandomSelection()
+        {
+            if (fightersList.elements.Length <= 1)
+                return 0;
+
+            int selection = randomSelection.Next(0, fightersList.elements.Length);
+            while (selection == P1Selected)
+            {
+                selection = randomSelection.Next(0, fightersList.elements.Length);
+            }
+
+            return selection;
         }
 
         private void OnCharacterButtonPressed(CharSelectButton btn)
@@ -128,11 +160,6 @@ namespace SakugaEngine.UI
         {
             characterButtons[P1Selected].IsSelected = true;
             P1Finished = true;
-
-            // Start CPU selection
-            isCpuSelecting = true;
-            cpuSelectionTimer = 0.0f;
-            cpuMoveTimer = 0.0f;
         }
 
         private void OnStageButtonPressed(StageSelectButton btn)
@@ -229,14 +256,15 @@ namespace SakugaEngine.UI
                             ConfirmPlayer1();
                         }
                     }
-                    else if (isCpuSelecting)
+
+                    if (isCpuSelecting)
                     {
                         cpuSelectionTimer += delta;
                         cpuMoveTimer += delta;
 
-                        if (cpuMoveTimer > 0.1f)
+                        if (cpuMoveTimer > CpuHoverInterval)
                         {
-                            P2Selected = randomSelection.Next(0, fightersList.elements.Length);
+                            P2Selected = GetCpuRandomSelection();
                             cpuMoveTimer = 0.0f;
                         }
 
@@ -245,15 +273,9 @@ namespace SakugaEngine.UI
                             isCpuSelecting = false;
 
                             // Final Selection
-                            P2Selected = randomSelection.Next(0, fightersList.elements.Length);
+                            P2Selected = GetCpuRandomSelection();
                             characterButtons[P2Selected].IsSelected = true;
                             P2Finished = true;
-
-                            // Bypass Stage Select -> Auto Random
-                            GD.Print("Bypassing Stage Select. Choosing Random Stage/BGM...");
-                            StageSelected = -1; // Random
-                            BGMSelected = -1;   // Random
-                            ConfirmStage();
                         }
                     }
                     else
@@ -264,7 +286,7 @@ namespace SakugaEngine.UI
                             characterButtons[P2Selected].IsSelected = false;
                             P1Finished = false;
                             P2Finished = false; // Reset P2 as well
-                            isCpuSelecting = false;
+                            StartCpuSelection();
                         }
                     }
                     // P2 manual selection removed for CPU mode

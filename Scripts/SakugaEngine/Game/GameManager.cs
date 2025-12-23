@@ -33,6 +33,17 @@ namespace SakugaEngine.Game
         private HealthHUD healthHUD;
         private MetersHUD metersHUD;
 
+        private Node3D stageInstance;
+        private bool inputsLocked = true;
+        private bool aiMovementLocked = true;
+        private bool cameraFollowLocked;
+
+        private Control fightBanner;
+        private Label fightLabel;
+
+        private const float fightFlashTime = 0.75f;
+        private const float introDollyDuration = 1.0f;
+
         private int Frame = 0;
         private int generatedSeed = 0;
         private int finalSeed = 0;
@@ -43,6 +54,9 @@ namespace SakugaEngine.Game
         {
             healthHUD = (HealthHUD)FighterUI.GetNode("GameHUD_Background");
             metersHUD = (MetersHUD)FighterUI.GetNode("GameHUD_Foreground");
+            fightBanner = FighterUI.GetNodeOrNull<Control>("FightBanner");
+            fightLabel = fightBanner?.GetNodeOrNull<Label>("FightLabel");
+            if (fightBanner != null) fightBanner.Visible = false;
             Nodes = new();
         }
 
@@ -68,7 +82,8 @@ namespace SakugaEngine.Game
         public void Render()
         {
             RenderNodes();
-            Camera.UpdateCamera(Fighters[0], Fighters[1]);
+            if (!cameraFollowLocked)
+                Camera.UpdateCamera(Fighters[0], Fighters[1]);
             healthHUD.UpdateHealthBars(Fighters, Monitor);
             metersHUD.UpdateMeters(Fighters);
         }
@@ -132,6 +147,11 @@ namespace SakugaEngine.Game
 
             Frame = 0;
 
+            stageInstance = null;
+            inputsLocked = true;
+            aiMovementLocked = true;
+            cameraFollowLocked = false;
+
             CreateStage(selectedStage);
 
             World = new PhysicsWorld();
@@ -163,6 +183,8 @@ namespace SakugaEngine.Game
             if (metersHUD == null && FighterUI != null) metersHUD = (MetersHUD)FighterUI.GetNode("GameHUD_Foreground");
             if (metersHUD != null) metersHUD.Setup(Fighters);
             else GD.PrintErr("GameManager: metersHUD is null! (Check FighterUI connection)");
+
+            StartIntroSequence();
         }
 
         public void CreateFighter(int characterIndex, int playerIndex)
@@ -190,7 +212,98 @@ namespace SakugaEngine.Game
                 stageIndex = 0;
             }
             Node temp = stagesList.elements[stageIndex].Instance.Instantiate();
+            stageInstance = temp as Node3D;
             AddChild(temp);
+        }
+
+        private void PositionFightersAtSpawns()
+        {
+            Vector2I leftPosition = new(-Global.StartingPosition, 0);
+            Vector2I rightPosition = new(Global.StartingPosition, 0);
+
+            if (stageInstance != null)
+            {
+                Node3D spawnRoot = stageInstance.GetNodeOrNull<Node3D>("SpawnMarkers");
+                Vector2I? left = GetSpawnPosition(spawnRoot?.GetNodeOrNull<Node3D>("LeftSpawn"));
+                Vector2I? right = GetSpawnPosition(spawnRoot?.GetNodeOrNull<Node3D>("RightSpawn"));
+
+                if (left.HasValue) leftPosition = left.Value;
+                if (right.HasValue) rightPosition = right.Value;
+            }
+
+            Fighters[0].Body.FixedVelocity = Vector2I.Zero;
+            Fighters[1].Body.FixedVelocity = Vector2I.Zero;
+
+            Fighters[0].Body.FixedPosition = leftPosition;
+            Fighters[1].Body.FixedPosition = rightPosition;
+
+            Fighters[0].ForcePlayerSide(true);
+            Fighters[1].ForcePlayerSide(false);
+
+            Fighters[0].PlayNeutralState();
+            Fighters[1].PlayNeutralState();
+        }
+
+        private Vector2I? GetSpawnPosition(Node3D spawn)
+        {
+            if (spawn == null) return null;
+
+            return new Vector2I(
+                (int)(spawn.GlobalPosition.X * Global.SimulationScale),
+                (int)(spawn.GlobalPosition.Y * Global.SimulationScale)
+            );
+        }
+
+        private float PlayTaunts()
+        {
+            float maxDuration = 0.5f;
+
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                int tauntIndex = Fighters[i].GetStateIndexByName("Taunt");
+                if (tauntIndex >= 0)
+                {
+                    Fighters[i].Animator.PlayState(tauntIndex, true);
+                    Fighters[i].Animator.Frame = -1;
+                    maxDuration = Mathf.Max(maxDuration, Fighters[i].GetStateDurationSeconds(tauntIndex));
+                }
+                else Fighters[i].PlayNeutralState();
+            }
+
+            return maxDuration;
+        }
+
+        private void ShowFightLabel(bool visible)
+        {
+            if (fightBanner == null) return;
+
+            fightBanner.Visible = visible;
+            if (fightLabel != null) fightLabel.Modulate = Colors.White;
+        }
+
+        private async void StartIntroSequence()
+        {
+            PositionFightersAtSpawns();
+
+            float tauntDuration = PlayTaunts();
+            await ToSignal(GetTree().CreateTimer(tauntDuration), "timeout");
+
+            Fighters[0].PlayNeutralState();
+            Fighters[1].PlayNeutralState();
+
+            Vector3 targetCameraPosition = Camera.CalculateFollowPosition(Fighters[0], Fighters[1]);
+            cameraFollowLocked = true;
+            SceneTreeTween dolly = Camera.PlayIntroDolly(targetCameraPosition, introDollyDuration);
+            if (dolly != null)
+                await ToSignal(dolly, "finished");
+
+            ShowFightLabel(true);
+            await ToSignal(GetTree().CreateTimer(fightFlashTime), "timeout");
+            ShowFightLabel(false);
+
+            cameraFollowLocked = false;
+            inputsLocked = false;
+            aiMovementLocked = false;
         }
 
         public void AddActor(SakugaNode newNode, bool isPhysicsBody = true)
@@ -226,6 +339,12 @@ namespace SakugaEngine.Game
             {
                 if (Fighters[i].UseAI)
                 {
+                    if (inputsLocked || aiMovementLocked)
+                    {
+                        Fighters[i].ParseInputs(0);
+                        continue;
+                    }
+
                     if (Fighters[i].Brain != null)
                     {
                         Fighters[i].Brain.SelectCommand();
@@ -235,6 +354,12 @@ namespace SakugaEngine.Game
                 }
                 else
                 {
+                    if (inputsLocked)
+                    {
+                        Fighters[i].ParseInputs(0);
+                        continue;
+                    }
+
                     ushort combinedInput = 0;
                     combinedInput |= playerInput[i * InputSize];
                     combinedInput |= (ushort)(playerInput[(i * InputSize) + 1] << 8);

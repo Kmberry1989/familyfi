@@ -16,6 +16,8 @@ namespace SakugaEngine
         public int CurrentState;
         public int Frame;
 
+        public string[] Prefixes => prefix ?? Array.Empty<string>();
+
         public void ViewAnimations()
         {
             if (GetCurrentState().animationSettings == null || GetCurrentState().animationSettings.Length == 0)

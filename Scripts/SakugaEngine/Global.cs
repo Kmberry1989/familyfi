@@ -62,7 +62,7 @@ namespace SakugaEngine
         public enum SpawnableHitCheck { OPPONENT, OWNER, BOTH }
         public enum PauseMode { PRESS, HOLD, LOCK }
         public enum SelectedMode { ARCADE, VERSUS, ONLINE, TRAINING }
-        public enum BotDifficulty { BEGINNER, EASY, MEDIUM, HARD, VERY_HARD, PRO }
+        public enum BotDifficulty { ROOKIE, BEGINNER, EASY, MEDIUM, HARD, VERY_HARD, PRO }
         public enum BotMode { ANY = -1, AGGRESSIVE, DEFENSIVE }
         //...
         /*public enum DirectionalInputs

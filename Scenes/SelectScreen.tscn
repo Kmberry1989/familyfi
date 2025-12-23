@@ -19,7 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://c3cyqacvyusmv" path="res://Fighters/Dummy/capsule_render.png" id="12_7p58r"]
 [ext_resource type="Texture2D" uid="uid://cw7llwhkqnheo" path="res://Sprites/Arrow.png" id="18_7p58r"]
 
-[node name="Control" type="Control" node_paths=PackedStringArray("BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer")]
+[node name="Control" type="Control" node_paths=PackedStringArray("BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer", "BotDifficultyOptions")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -56,6 +56,7 @@ stagesButtonElement = ExtResource("9_vt3nd")
 stagesContainer = NodePath("StageSelect/HBoxContainer")
 randomStageThumbnail = ExtResource("9_ly1kb")
 autoStageThumbnail = ExtResource("10_8r0cl")
+BotDifficultyOptions = NodePath("StageSelect/BotDifficultyContainer/BotDifficulty")
 
 [node name="StagePortrait" type="TextureRect" parent="."]
 layout_mode = 1
@@ -275,6 +276,32 @@ offset_right = 1040.0
 offset_bottom = 488.0
 texture = ExtResource("11_83tgi")
 expand_mode = 1
+
+[node name="BotDifficultyContainer" type="HBoxContainer" parent="StageSelect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 300.0
+offset_right = 200.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="StageSelect/BotDifficultyContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "CPU Difficulty"
+horizontal_alignment = 2
+
+[node name="BotDifficulty" type="OptionButton" parent="StageSelect/BotDifficultyContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 0
 
 [node name="StageSelectCursor" type="Control" parent="StageSelect"]
 layout_mode = 1

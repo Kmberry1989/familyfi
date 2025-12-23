@@ -26,6 +26,18 @@ namespace SakugaEngine.Resources
         /// If the character's health is smaller than this, the CPU will enter a defensive state.
         /// </summary>
         [Export] public int LowHealth = 4000;
+        /// <summary>
+        /// Random delay before the AI starts acting at the beginning of a round.
+        /// </summary>
+        [Export] public Vector2I OpeningPause = new Vector2I(0, 0);
+        /// <summary>
+        /// How long the AI can hesitate before moving in when far away.
+        /// </summary>
+        [Export] public Vector2I ApproachWait = new Vector2I(0, 0);
+        /// <summary>
+        /// Additional buffer frames before committing to a defensive or offensive action.
+        /// </summary>
+        [Export] public Vector2I ReactionDelay = new Vector2I(0, 0);
 
         [ExportCategory("Behavior Tree")]
         [Export] public AIActionPack NearActions;

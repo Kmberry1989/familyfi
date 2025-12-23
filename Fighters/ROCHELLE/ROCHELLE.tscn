@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3 uid="uid://bpjlbemm62nsw"]
+[gd_scene load_steps=65 format=3 uid="uid://bpjlbemm62nsw"]
 
 [ext_resource type="Script" uid="uid://bkhlpeqky2g1r" path="res://Scripts/SakugaEngine/Components/SakugaFighter.cs" id="1_fighter"]
 [ext_resource type="Script" uid="uid://hg0vcp1gy2ny" path="res://Scripts/SakugaEngine/Collision/PhysicsBody.cs" id="2_phys"]
@@ -60,6 +60,7 @@
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Tech.tres" id="29_a_tech"]
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Actions/Action_Recovery.tres" id="30_a_recover"]
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Behaviors/Behavior_3D_Easy.tres" id="31_behav_easy"]
+[ext_resource type="Resource" path="res://Fighters/Shared/AI/Behaviors/Behavior_3D_Rookie.tres" id="101_behav_rookie"]
 [ext_resource type="Script" uid="uid://cmq3cp1n0copp" path="res://Scripts/SakugaEngine/Components/FrameTimer.cs" id="100_timer"]
 
 [sub_resource type="Animation" id="Animation_ue57k"]
@@ -562,6 +563,7 @@ LowBlockAction = 11
 ForwardRecoveryAction = 14
 BackRecoveryAction = 14
 ThrowEscapeAction = 13
+BehaviorRookie = ExtResource("101_behav_rookie")
 BehaviorBeginner = ExtResource("31_behav_easy")
 BehaviorEasy = ExtResource("31_behav_easy")
 BehaviorMedium = ExtResource("31_behav_easy")

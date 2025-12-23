@@ -107,7 +107,7 @@ namespace PleaseResync
             DEVICE_ID = ID;
             sessionState = state;
             sessionState.Setup();
-            LastInput = new byte[InputSize];
+            LastInput = new byte[(int)(playerCount * InputSize)];
 
             if (!spectate)
             {

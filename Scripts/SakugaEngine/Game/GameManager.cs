@@ -333,7 +333,7 @@ namespace SakugaEngine.Game
                 input |= Global.INPUT_FACE_A | Global.INPUT_FACE_B | Global.INPUT_FACE_C | Global.INPUT_FACE_D;*/
 
             bool useTouch = DisplayServer.IsTouchscreenAvailable();
-            if (TouchInput != null && TouchInput.IsVisibleInTree() && useTouch)
+            if (id == 0 && TouchInput != null && TouchInput.IsVisibleInTree() && useTouch)
             {
                 ushort touchData = TouchInput.GetInput();
                 input[0] |= (byte)(touchData & 0xFF);
@@ -385,15 +385,6 @@ namespace SakugaEngine.Game
                 return;
             }
 
-            var targetPlayer = fighter.Animator.players[0];
-            var library = targetPlayer.GetAnimationLibrary("");
-            if (library == null)
-            {
-                GD.Print("[InjectSharedAnimations] Creating new AnimationLibrary...");
-                library = new AnimationLibrary();
-                targetPlayer.AddAnimationLibrary("", library);
-            }
-
             // Define mandatory state mappings (State Name -> Filename without extension)
             var aliases = new Dictionary<string, List<string>>
             {
@@ -409,50 +400,24 @@ namespace SakugaEngine.Game
             };
 
             string folderPath = "res://Fighters/Shared/Animations/";
-            var dir = DirAccess.Open(folderPath);
-            if (dir != null)
+            var sharedAnimations = LoadSharedAnimationLibrary(folderPath, fighter.Name);
+
+            for (int playerIndex = 0; playerIndex < fighter.Animator.players.Length; playerIndex++)
             {
-                dir.ListDirBegin();
-                string fileName = dir.GetNext();
-                while (fileName != "")
+                var targetPlayer = fighter.Animator.players[playerIndex];
+                var library = targetPlayer.GetAnimationLibrary("");
+                if (library == null)
                 {
-                    if (!dir.CurrentIsDir() && (fileName.EndsWith(".glb") || fileName.EndsWith(".gltf")))
-                    {
-                        string fullPath = folderPath + fileName;
-                        string baseName = System.IO.Path.GetFileNameWithoutExtension(fileName);
-
-                        // Load and extract animation
-                        Animation anim = LoadAnimationFromResource(fullPath, fighter.Name);
-                        if (anim != null)
-                        {
-                            // Add with original name
-                            if (!library.HasAnimation(baseName))
-                            {
-                                library.AddAnimation(baseName, anim);
-                            }
-
-                            // Add aliases
-                            if (aliases.ContainsKey(baseName))
-                            {
-                                foreach (var alias in aliases[baseName])
-                                {
-                                    if (!library.HasAnimation(alias))
-                                    {
-                                        library.AddAnimation(alias, anim);
-                                        //GD.Print($"[InjectSharedAnimations] Added Alias: {alias} -> {baseName}");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    fileName = dir.GetNext();
+                    GD.Print("[InjectSharedAnimations] Creating new AnimationLibrary...");
+                    library = new AnimationLibrary();
+                    targetPlayer.AddAnimationLibrary("", library);
                 }
+
+                AddSharedAnimationsToLibrary(library, sharedAnimations, aliases);
+                EnsureDefaultAnimations(fighter, playerIndex, targetPlayer, library);
             }
-            else
-            {
-                GD.PrintErr($"[InjectSharedAnimations] Failed to open directory: {folderPath}");
-            }
-            GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", targetPlayer.GetAnimationList())}");
+
+            GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", fighter.Animator.players[0].GetAnimationList())}");
         }
 
         private Animation LoadAnimationFromResource(string path, string debugName)
@@ -518,6 +483,115 @@ namespace SakugaEngine.Game
                 GD.PrintErr($"[InjectSharedAnimations] Could not find animation in {path} for {debugName}");
                 return null;
             }
+        }
+
+        private Dictionary<string, Animation> LoadSharedAnimationLibrary(string folderPath, string fighterName)
+        {
+            var sharedAnimations = new Dictionary<string, Animation>();
+            var dir = DirAccess.Open(folderPath);
+            if (dir == null)
+            {
+                GD.PrintErr($"[InjectSharedAnimations] Failed to open directory: {folderPath}");
+                return sharedAnimations;
+            }
+
+            dir.ListDirBegin();
+            string fileName = dir.GetNext();
+            while (fileName != "")
+            {
+                if (!dir.CurrentIsDir() && (fileName.EndsWith(".glb") || fileName.EndsWith(".gltf")))
+                {
+                    string fullPath = folderPath + fileName;
+                    string baseName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+
+                    Animation anim = LoadAnimationFromResource(fullPath, fighterName);
+                    if (anim != null && !sharedAnimations.ContainsKey(baseName))
+                    {
+                        sharedAnimations[baseName] = anim;
+                    }
+                }
+                fileName = dir.GetNext();
+            }
+
+            return sharedAnimations;
+        }
+
+        private void AddSharedAnimationsToLibrary(AnimationLibrary library, Dictionary<string, Animation> sharedAnimations, Dictionary<string, List<string>> aliases)
+        {
+            foreach (var kvp in sharedAnimations)
+            {
+                var animationCopy = (Animation)kvp.Value.Duplicate();
+                if (!library.HasAnimation(kvp.Key))
+                {
+                    library.AddAnimation(kvp.Key, animationCopy);
+                }
+
+                if (aliases.TryGetValue(kvp.Key, out var aliasList))
+                {
+                    foreach (var alias in aliasList)
+                    {
+                        if (!library.HasAnimation(alias))
+                        {
+                            library.AddAnimation(alias, (Animation)animationCopy.Duplicate());
+                        }
+                    }
+                }
+            }
+        }
+
+        private void EnsureDefaultAnimations(SakugaFighter fighter, int playerIndex, AnimationPlayer player, AnimationLibrary library)
+        {
+            if (fighter.Animator?.States == null || fighter.Animator.States.Length == 0)
+                return;
+
+            string prefix = string.Empty;
+            if (fighter.Animator.Prefixes != null && playerIndex < fighter.Animator.Prefixes.Length)
+                prefix = fighter.Animator.Prefixes[playerIndex] ?? string.Empty;
+
+            Animation fallback = GetFallbackAnimation(library, prefix);
+
+            HashSet<string> requiredAnimations = new HashSet<string>();
+            foreach (var state in fighter.Animator.States)
+            {
+                if (state?.animationSettings == null) continue;
+                foreach (var animSettings in state.animationSettings)
+                {
+                    if (animSettings == null || string.IsNullOrEmpty(animSettings.SourceAnimation)) continue;
+                    requiredAnimations.Add(prefix + animSettings.SourceAnimation);
+                }
+            }
+
+            foreach (var animationName in requiredAnimations)
+            {
+                if (!library.HasAnimation(animationName))
+                {
+                    library.AddAnimation(animationName, (Animation)fallback.Duplicate());
+                }
+            }
+        }
+
+        private Animation GetFallbackAnimation(AnimationLibrary library, string prefix)
+        {
+            string[] candidates = new string[] { prefix + "Idle", "Idle" };
+            foreach (var candidate in candidates)
+            {
+                if (library.HasAnimation(candidate))
+                    return library.GetAnimation(candidate);
+            }
+
+            var available = library.GetAnimationList();
+            if (available.Count > 0)
+                return library.GetAnimation(available[0]);
+
+            return CreatePlaceholderAnimation();
+        }
+
+        private Animation CreatePlaceholderAnimation()
+        {
+            var placeholder = new Animation();
+            placeholder.Length = 0.1f;
+            placeholder.LoopMode = Animation.LoopModeEnum.Linear;
+            return placeholder;
         }
     }
 }

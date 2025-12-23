@@ -43,12 +43,18 @@ namespace SakugaEngine.Game
 
         private const float fightFlashTime = 0.75f;
         private const float introDollyDuration = 1.0f;
+        private const float aiIntroAdvanceDuration = 1.5f;
+        private const float aiIntroAdvanceStepDuration = 0.35f;
+        private const float aiIntroAdvancePauseDuration = 0.25f;
 
         private int Frame = 0;
         private int generatedSeed = 0;
         private int finalSeed = 0;
 
         Vector3I randomTest = new();
+
+        private bool aiIntroAdvanceActive;
+        private bool aiIntroAdvanceMoving;
 
         public override void _Ready()
         {
@@ -151,6 +157,8 @@ namespace SakugaEngine.Game
             inputsLocked = true;
             aiMovementLocked = true;
             cameraFollowLocked = false;
+            aiIntroAdvanceActive = false;
+            aiIntroAdvanceMoving = false;
 
             CreateStage(selectedStage);
 
@@ -227,6 +235,28 @@ namespace SakugaEngine.Game
                 Vector2I? left = GetSpawnPosition(spawnRoot?.GetNodeOrNull<Node3D>("LeftSpawn"));
                 Vector2I? right = GetSpawnPosition(spawnRoot?.GetNodeOrNull<Node3D>("RightSpawn"));
 
+                if (spawnRoot != null)
+                {
+                    Vector2I? furthestLeft = null;
+                    Vector2I? furthestRight = null;
+
+                    foreach (Node child in spawnRoot.GetChildren())
+                    {
+                        if (child is not Node3D marker) continue;
+                        Vector2I? spawnPos = GetSpawnPosition(marker);
+                        if (!spawnPos.HasValue) continue;
+
+                        if (!furthestLeft.HasValue || spawnPos.Value.X < furthestLeft.Value.X)
+                            furthestLeft = spawnPos;
+
+                        if (!furthestRight.HasValue || spawnPos.Value.X > furthestRight.Value.X)
+                            furthestRight = spawnPos;
+                    }
+
+                    left ??= furthestLeft;
+                    right ??= furthestRight;
+                }
+
                 if (left.HasValue) leftPosition = left.Value;
                 if (right.HasValue) rightPosition = right.Value;
             }
@@ -273,6 +303,11 @@ namespace SakugaEngine.Game
             return maxDuration;
         }
 
+        private ushort GetAdvanceInput(SakugaFighter fighter)
+        {
+            return fighter.Body.IsLeftSide ? Global.INPUT_RIGHT : Global.INPUT_LEFT;
+        }
+
         private void ShowFightLabel(bool visible)
         {
             if (fightBanner == null) return;
@@ -303,7 +338,43 @@ namespace SakugaEngine.Game
 
             cameraFollowLocked = false;
             inputsLocked = false;
+            StartHesitantAdvance();
+        }
+
+        private async void StartHesitantAdvance()
+        {
             aiMovementLocked = false;
+
+            bool hasAI = false;
+            foreach (SakugaFighter fighter in Fighters)
+            {
+                if (fighter != null && fighter.UseAI)
+                {
+                    hasAI = true;
+                    break;
+                }
+            }
+
+            if (!hasAI) return;
+
+            aiIntroAdvanceActive = true;
+            aiIntroAdvanceMoving = true;
+
+            float elapsed = 0f;
+            bool steppingForward = true;
+
+            while (elapsed < aiIntroAdvanceDuration && aiIntroAdvanceActive)
+            {
+                aiIntroAdvanceMoving = steppingForward;
+                float window = steppingForward ? aiIntroAdvanceStepDuration : aiIntroAdvancePauseDuration;
+
+                await ToSignal(GetTree().CreateTimer(window), "timeout");
+
+                elapsed += window;
+                steppingForward = !steppingForward;
+            }
+
+            aiIntroAdvanceActive = false;
         }
 
         public void AddActor(SakugaNode newNode, bool isPhysicsBody = true)
@@ -342,6 +413,12 @@ namespace SakugaEngine.Game
                     if (inputsLocked || aiMovementLocked)
                     {
                         Fighters[i].ParseInputs(0);
+                        continue;
+                    }
+
+                    if (aiIntroAdvanceActive)
+                    {
+                        Fighters[i].ParseInputs(aiIntroAdvanceMoving ? GetAdvanceInput(Fighters[i]) : (ushort)0);
                         continue;
                     }
 

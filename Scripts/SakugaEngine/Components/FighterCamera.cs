@@ -17,12 +17,20 @@ namespace SakugaEngine
 
         private Camera3D charCam;
 
+        private SceneTreeTween introTween;
+
         const float DELTA = 10f / Global.TicksPerSecond;
 
         public override void _Ready()
         {
             charCam = GetNode<Camera3D>("../CanvasLayer/ViewportContainer/Viewport_Foreground/CharacterCamera");
             //audioListener = GetNode<Listener>("Listener");
+        }
+
+        public override void _Process(double delta)
+        {
+            base._Process(delta);
+            SyncCharacterCamera();
         }
 
         public void UpdateCamera(SakugaFighter player1, SakugaFighter player2)
@@ -62,6 +70,58 @@ namespace SakugaEngine
             charCam.Fov = Fov;
 
             //audioListener.GlobalTranslation = new Vector3(Position.X, Position.Y, 0);
+        }
+
+        public Vector3 CalculateFollowPosition(SakugaFighter player1, SakugaFighter player2)
+        {
+            if (player1 == null || player2 == null) return Position;
+
+            Vector3 _p1Position = Global.ToScaledVector3(player1.Body.FixedPosition);
+            Vector3 _p2Position = Global.ToScaledVector3(player2.Body.FixedPosition);
+
+            float playerDistance = Mathf.Clamp(Mathf.Abs(_p2Position.X - _p1Position.X), minDistance, maxDistance);
+            float pl = (playerDistance - minDistance) / (maxDistance - minDistance);
+            float FinalYOffset = Mathf.Lerp(minOffset.Y, maxOffset.Y, pl);
+            float FinalZOffset = Mathf.Lerp(minOffset.X, maxOffset.X, pl);
+
+            float finalCamY = Mathf.Max(Mathf.Max(_p1Position.Y, _p2Position.Y), FinalYOffset);
+            float actualCenter = (_p1Position.X + _p2Position.X) / 2;
+
+            float BoundsAdd = Mathf.Lerp(boundsAdditionalNear, boundsAdditionalFar, pl);
+            Vector3 targetPosition = new Vector3(
+                Mathf.Clamp(actualCenter, minBounds.X + BoundsAdd, maxBounds.X - BoundsAdd),
+                Mathf.Clamp(finalCamY, minBounds.Y, maxBounds.Y),
+                -FinalZOffset);
+
+            return targetPosition;
+        }
+
+        public SceneTreeTween PlayIntroDolly(Vector3 targetPosition, float duration)
+        {
+            introTween?.Kill();
+
+            Vector3 startPosition = targetPosition + new Vector3(-0.5f, 3.25f, -4.5f);
+            Vector3 midPosition = targetPosition + new Vector3(0f, 2f, -2.5f);
+            Position = startPosition;
+
+            introTween = CreateTween();
+            introTween.TweenProperty(this, "position", midPosition, duration * 0.6f)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.Out);
+            introTween.TweenProperty(this, "position", targetPosition, duration * 0.4f)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.Out);
+            introTween.TweenCallback(Callable.From(() => introTween = null));
+
+            return introTween;
+        }
+
+        private void SyncCharacterCamera()
+        {
+            if (charCam == null) return;
+
+            charCam.GlobalTransform = GlobalTransform;
+            charCam.Fov = Fov;
         }
     }
 }

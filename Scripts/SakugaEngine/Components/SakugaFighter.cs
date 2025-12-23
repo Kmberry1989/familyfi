@@ -160,6 +160,33 @@ namespace SakugaEngine
             Body.PlayerSide = Body.IsLeftSide ? 1 : -1;
         }
 
+        public int GetStateIndexByName(string stateName)
+        {
+            if (Animator?.States == null || string.IsNullOrEmpty(stateName)) return -1;
+
+            for (int i = 0; i < Animator.States.Length; i++)
+            {
+                if (Animator.States[i] != null && Animator.States[i].StateName == stateName)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        public float GetStateDurationSeconds(int stateIndex)
+        {
+            if (Animator?.States == null || stateIndex < 0 || stateIndex >= Animator.States.Length)
+                return 0f;
+
+            return Animator.States[stateIndex].Duration / (float)Global.TicksPerSecond;
+        }
+
+        public void PlayNeutralState()
+        {
+            Animator.PlayState(Stance.GetCurrentStance().NeutralState, true);
+            Animator.Frame = -1;
+        }
+
         public override void PreTick()
         {
             HitStop.Run();

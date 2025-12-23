@@ -1,6 +1,8 @@
 using Godot;
 using SakugaEngine;
 using SakugaEngine.Resources;
+using System;
+using System.Threading.Tasks;
 
 namespace SakugaEngine.UI
 {
@@ -48,6 +50,7 @@ namespace SakugaEngine.UI
         [Export] private HBoxContainer stagesContainer;
         [Export] private Texture2D randomStageThumbnail;
         [Export] private Texture2D autoStageThumbnail;
+        [Export] private OptionButton BotDifficultyOptions;
 
         //Hidden variables
         private bool P1Finished;
@@ -63,7 +66,10 @@ namespace SakugaEngine.UI
         private double cpuMoveTimer = 0.0f;
         private double cpuSelectionDuration = 2.0f;
 
+        private const double CpuHoverInterval = 0.25f;
+
         private System.Random randomSelection;
+        private Global.BotDifficulty selectedBotDifficulty = Global.BotDifficulty.MEDIUM;
 
         public override void _Ready()
         {
@@ -107,6 +113,57 @@ namespace SakugaEngine.UI
                 stageSelectionButtons[i + 2] = temp;
                 stagesContainer.AddChild(temp);
             }
+
+            SetupBotDifficultyOptions();
+            StartCpuSelection();
+        }
+
+        private void SetupBotDifficultyOptions()
+        {
+            if (BotDifficultyOptions == null) return;
+
+            BotDifficultyOptions.Clear();
+            foreach (Global.BotDifficulty difficulty in Enum.GetValues(typeof(Global.BotDifficulty)))
+            {
+                string label = difficulty.ToString().Replace("_", " ");
+                BotDifficultyOptions.AddItem(label, (int)difficulty);
+            }
+
+            BotDifficultyOptions.Select((int)selectedBotDifficulty);
+            BotDifficultyOptions.ItemSelected += OnBotDifficultyOptionSelected;
+        }
+
+        private void OnBotDifficultyOptionSelected(long index)
+        {
+            selectedBotDifficulty = (Global.BotDifficulty)index;
+        }
+
+        private void StartCpuSelection()
+        {
+            if (characterButtons != null && P2Selected < characterButtons.Length)
+            {
+                characterButtons[P2Selected].IsSelected = false;
+            }
+
+            isCpuSelecting = true;
+            P2Finished = false;
+            cpuSelectionTimer = 0.0f;
+            cpuMoveTimer = 0.0f;
+            P2Selected = GetCpuRandomSelection();
+        }
+
+        private int GetCpuRandomSelection()
+        {
+            if (fightersList.elements.Length <= 1)
+                return 0;
+
+            int selection = randomSelection.Next(0, fightersList.elements.Length);
+            while (selection == P1Selected)
+            {
+                selection = randomSelection.Next(0, fightersList.elements.Length);
+            }
+
+            return selection;
         }
 
         private void OnCharacterButtonPressed(CharSelectButton btn)
@@ -128,11 +185,6 @@ namespace SakugaEngine.UI
         {
             characterButtons[P1Selected].IsSelected = true;
             P1Finished = true;
-
-            // Start CPU selection
-            isCpuSelecting = true;
-            cpuSelectionTimer = 0.0f;
-            cpuMoveTimer = 0.0f;
         }
 
         private void OnStageButtonPressed(StageSelectButton btn)
@@ -229,14 +281,15 @@ namespace SakugaEngine.UI
                             ConfirmPlayer1();
                         }
                     }
-                    else if (isCpuSelecting)
+
+                    if (isCpuSelecting)
                     {
                         cpuSelectionTimer += delta;
                         cpuMoveTimer += delta;
 
-                        if (cpuMoveTimer > 0.1f)
+                        if (cpuMoveTimer > CpuHoverInterval)
                         {
-                            P2Selected = randomSelection.Next(0, fightersList.elements.Length);
+                            P2Selected = GetCpuRandomSelection();
                             cpuMoveTimer = 0.0f;
                         }
 
@@ -245,15 +298,9 @@ namespace SakugaEngine.UI
                             isCpuSelecting = false;
 
                             // Final Selection
-                            P2Selected = randomSelection.Next(0, fightersList.elements.Length);
+                            P2Selected = GetCpuRandomSelection();
                             characterButtons[P2Selected].IsSelected = true;
                             P2Finished = true;
-
-                            // Bypass Stage Select -> Auto Random
-                            GD.Print("Bypassing Stage Select. Choosing Random Stage/BGM...");
-                            StageSelected = -1; // Random
-                            BGMSelected = -1;   // Random
-                            ConfirmStage();
                         }
                     }
                     else
@@ -264,7 +311,7 @@ namespace SakugaEngine.UI
                             characterButtons[P2Selected].IsSelected = false;
                             P1Finished = false;
                             P2Finished = false; // Reset P2 as well
-                            isCpuSelecting = false;
+                            StartCpuSelection();
                         }
                     }
                     // P2 manual selection removed for CPU mode
@@ -441,10 +488,43 @@ namespace SakugaEngine.UI
             Global.Match.selectedBGM = BGMSelected;
             Global.Match.roundsToWin = 2;
             Global.Match.roundTime = 99;
-            Global.Match.botDifficulty = Global.BotDifficulty.MEDIUM;
+            Global.Match.botDifficulty = selectedBotDifficulty;
             Global.Match.selectedMode = Global.SelectedMode.VERSUS;
 
             GD.Print($"MatchSetup Complete: P1={P1Selected}, P2={P2Selected}, Stage={StageSelected}, BGM={BGMSelected}");
+        }
+
+        private async Task FadeOutSelectionUI()
+        {
+            Tween fadeTween = null;
+
+            if (CharacterSelectMode != null || StageSelectMode != null)
+            {
+                fadeTween = CreateTween();
+                fadeTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+
+                if (CharacterSelectMode != null)
+                {
+                    Vector2 initialPosition = CharacterSelectMode.Position;
+                    fadeTween.TweenProperty(CharacterSelectMode, "modulate:a", 0.0f, 0.35f);
+                    fadeTween.Parallel().TweenProperty(CharacterSelectMode, "position", initialPosition + new Vector2(0, 50), 0.35f);
+                }
+
+                if (StageSelectMode != null)
+                {
+                    Vector2 initialPosition = StageSelectMode.Position;
+                    fadeTween.TweenProperty(StageSelectMode, "modulate:a", 0.0f, 0.35f);
+                    fadeTween.Parallel().TweenProperty(StageSelectMode, "position", initialPosition + new Vector2(0, 50), 0.35f);
+                }
+
+                await ToSignal(fadeTween, "finished");
+
+                if (CharacterSelectMode != null)
+                    CharacterSelectMode.Visible = false;
+
+                if (StageSelectMode != null)
+                    StageSelectMode.Visible = false;
+            }
         }
 
         async void ShowBattleCard()
@@ -452,8 +532,33 @@ namespace SakugaEngine.UI
             GD.Print("ShowBattleCard called");
             if (BattleCardLayer != null)
             {
+                await FadeOutSelectionUI();
+
                 GD.Print("BattleCardLayer found, displaying...");
                 BattleCardLayer.ZIndex = 100; // Ensure it's on top
+
+                // Smoothly hide the select UI before showing the card
+                Control[] selectGroups = new Control[] { CharacterSelectMode, StageSelectMode };
+                Tween selectTween = CreateTween();
+                foreach (Control control in selectGroups)
+                {
+                    if (control == null || !control.Visible)
+                        continue;
+
+                    Vector2 startPosition = control.Position;
+                    selectTween.Parallel().TweenProperty(control, "modulate:a", 0.0f, 0.35f)
+                        .SetTrans(Tween.TransitionType.Cubic)
+                        .SetEase(Tween.EaseType.In);
+                    selectTween.Parallel().TweenProperty(control, "position:y", startPosition.Y + 60.0f, 0.35f)
+                        .SetTrans(Tween.TransitionType.Cubic)
+                        .SetEase(Tween.EaseType.In);
+
+                    selectTween.Parallel().TweenCallback(Callable.From(() => control.Visible = false));
+                }
+
+                if (selectTween.IsValid())
+                    await ToSignal(selectTween, "finished");
+
                 BattleCardLayer.Visible = true;
                 BattleCardLayer.Modulate = new Color(1, 1, 1, 0);
 
@@ -478,14 +583,93 @@ namespace SakugaEngine.UI
                     P2ReadyRender.FlipH = true;
                 }
 
-                // Fade In
+                // Prepare starting transforms for animation
+                Vector2 p1TargetPosition = P1ReadyRender.Position;
+                Vector2 p2TargetPosition = P2ReadyRender.Position;
+                Vector2 vsTargetPosition = VSLabel.Position;
+
+                const float readyOffset = 520.0f;
+                P1ReadyRender.Position = p1TargetPosition + new Vector2(-readyOffset, 0.0f);
+                P2ReadyRender.Position = p2TargetPosition + new Vector2(readyOffset, 0.0f);
+                P1ReadyRender.Modulate = new Color(1, 1, 1, 0);
+                P2ReadyRender.Modulate = new Color(1, 1, 1, 0);
+
+                VSLabel.Position = vsTargetPosition + new Vector2(0.0f, -40.0f);
+                VSLabel.Scale = new Vector2(1.1f, 1.1f);
+                VSLabel.Modulate = new Color(1, 1, 1, 0);
+
                 Tween tween = CreateTween();
-                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.5f);
+                tween.SetParallel(true);
+
+                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.55f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(P1ReadyRender, "position", p1TargetPosition, 0.7f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P2ReadyRender, "position", p2TargetPosition, 0.7f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P1ReadyRender, "modulate:a", 1.0f, 0.45f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P2ReadyRender, "modulate:a", 1.0f, 0.45f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(VSLabel, "position", vsTargetPosition, 0.4f)
+                    .SetTrans(Tween.TransitionType.Back)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(VSLabel, "scale", Vector2.One, 0.4f)
+                    .SetTrans(Tween.TransitionType.Back)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(VSLabel, "modulate:a", 1.0f, 0.35f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+
                 await ToSignal(tween, "finished");
 
-                // Wait
+                GD.Print("Battle Card displayed, waiting 1.75s...");
+                await ToSignal(GetTree().CreateTimer(1.75f), "timeout");
+
+                Tween fadeOutTween = CreateTween();
+                fadeOutTween.TweenProperty(BattleCardLayer, "modulate:a", 0.0f, 0.5f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.In);
+                Vector2 p1Target = P1ReadyRender.Position;
+                Vector2 p2Target = P2ReadyRender.Position;
+                Vector2 vsTarget = VSLabel.Position;
+
+                float spreadDistance = 320.0f;
+                P1ReadyRender.Position = p1Target - new Vector2(spreadDistance, 0);
+                P2ReadyRender.Position = p2Target + new Vector2(spreadDistance, 0);
+                VSLabel.Position = vsTarget + new Vector2(0, -80);
+
+                VSLabel.Modulate = new Color(1, 1, 1, 0);
+                VSLabel.Scale = new Vector2(1.2f, 1.2f);
+
+                // Fade In and slide together
+                Tween tween = CreateTween();
+                tween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.6f);
+                tween.Parallel().TweenProperty(P1ReadyRender, "position", p1Target, 0.7f).SetTrans(Tween.TransitionType.Quart).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(P2ReadyRender, "position", p2Target, 0.7f).SetTrans(Tween.TransitionType.Quart).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(VSLabel, "position", vsTarget, 0.5f).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(VSLabel, "modulate:a", 1.0f, 0.5f);
+                tween.Parallel().TweenProperty(VSLabel, "scale", new Vector2(1, 1), 0.5f).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+
+                await ToSignal(tween, "finished");
+
+                // Wait with the card visible
                 GD.Print("Battle Card displayed, waiting 2.0s...");
                 await ToSignal(GetTree().CreateTimer(2.0f), "timeout");
+
+                Tween fadeOutTween = CreateTween();
+                fadeOutTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+                fadeOutTween.TweenProperty(BattleCardLayer, "modulate:a", 0.0f, 0.6f);
+                await ToSignal(fadeOutTween, "finished");
             }
             else
             {

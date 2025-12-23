@@ -100,11 +100,15 @@ namespace SakugaEngine
         {
             introTween?.Kill();
 
-            Vector3 startPosition = targetPosition + new Vector3(0f, 2.5f, -3f);
+            Vector3 startPosition = targetPosition + new Vector3(-0.5f, 3.25f, -4.5f);
+            Vector3 midPosition = targetPosition + new Vector3(0f, 2f, -2.5f);
             Position = startPosition;
 
             introTween = CreateTween();
-            introTween.TweenProperty(this, "position", targetPosition, duration)
+            introTween.TweenProperty(this, "position", midPosition, duration * 0.6f)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.Out);
+            introTween.TweenProperty(this, "position", targetPosition, duration * 0.4f)
                 .SetTrans(Tween.TransitionType.Cubic)
                 .SetEase(Tween.EaseType.Out);
             introTween.TweenCallback(Callable.From(() => introTween = null));

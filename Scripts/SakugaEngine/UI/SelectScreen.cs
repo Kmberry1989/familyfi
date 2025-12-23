@@ -512,6 +512,29 @@ namespace SakugaEngine.UI
 
                 GD.Print("BattleCardLayer found, displaying...");
                 BattleCardLayer.ZIndex = 100; // Ensure it's on top
+
+                // Smoothly hide the select UI before showing the card
+                Control[] selectGroups = new Control[] { CharacterSelectMode, StageSelectMode };
+                Tween selectTween = CreateTween();
+                foreach (Control control in selectGroups)
+                {
+                    if (control == null || !control.Visible)
+                        continue;
+
+                    Vector2 startPosition = control.Position;
+                    selectTween.Parallel().TweenProperty(control, "modulate:a", 0.0f, 0.35f)
+                        .SetTrans(Tween.TransitionType.Cubic)
+                        .SetEase(Tween.EaseType.In);
+                    selectTween.Parallel().TweenProperty(control, "position:y", startPosition.Y + 60.0f, 0.35f)
+                        .SetTrans(Tween.TransitionType.Cubic)
+                        .SetEase(Tween.EaseType.In);
+
+                    selectTween.Parallel().TweenCallback(Callable.From(() => control.Visible = false));
+                }
+
+                if (selectTween.IsValid())
+                    await ToSignal(selectTween, "finished");
+
                 BattleCardLayer.Visible = true;
                 BattleCardLayer.Modulate = new Color(1, 1, 1, 0);
 
@@ -536,6 +559,60 @@ namespace SakugaEngine.UI
                     P2ReadyRender.FlipH = true;
                 }
 
+                // Prepare starting transforms for animation
+                Vector2 p1TargetPosition = P1ReadyRender.Position;
+                Vector2 p2TargetPosition = P2ReadyRender.Position;
+                Vector2 vsTargetPosition = VSLabel.Position;
+
+                const float readyOffset = 520.0f;
+                P1ReadyRender.Position = p1TargetPosition + new Vector2(-readyOffset, 0.0f);
+                P2ReadyRender.Position = p2TargetPosition + new Vector2(readyOffset, 0.0f);
+                P1ReadyRender.Modulate = new Color(1, 1, 1, 0);
+                P2ReadyRender.Modulate = new Color(1, 1, 1, 0);
+
+                VSLabel.Position = vsTargetPosition + new Vector2(0.0f, -40.0f);
+                VSLabel.Scale = new Vector2(1.1f, 1.1f);
+                VSLabel.Modulate = new Color(1, 1, 1, 0);
+
+                Tween tween = CreateTween();
+                tween.SetParallel(true);
+
+                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.55f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(P1ReadyRender, "position", p1TargetPosition, 0.7f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P2ReadyRender, "position", p2TargetPosition, 0.7f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P1ReadyRender, "modulate:a", 1.0f, 0.45f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(P2ReadyRender, "modulate:a", 1.0f, 0.45f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(VSLabel, "position", vsTargetPosition, 0.4f)
+                    .SetTrans(Tween.TransitionType.Back)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(VSLabel, "scale", Vector2.One, 0.4f)
+                    .SetTrans(Tween.TransitionType.Back)
+                    .SetEase(Tween.EaseType.Out);
+                tween.TweenProperty(VSLabel, "modulate:a", 1.0f, 0.35f)
+                    .SetTrans(Tween.TransitionType.Sine)
+                    .SetEase(Tween.EaseType.Out);
+
+                await ToSignal(tween, "finished");
+
+                GD.Print("Battle Card displayed, waiting 1.75s...");
+                await ToSignal(GetTree().CreateTimer(1.75f), "timeout");
+
+                Tween fadeOutTween = CreateTween();
+                fadeOutTween.TweenProperty(BattleCardLayer, "modulate:a", 0.0f, 0.5f)
+                    .SetTrans(Tween.TransitionType.Cubic)
+                    .SetEase(Tween.EaseType.In);
                 Vector2 p1Target = P1ReadyRender.Position;
                 Vector2 p2Target = P2ReadyRender.Position;
                 Vector2 vsTarget = VSLabel.Position;

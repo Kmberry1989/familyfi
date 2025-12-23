@@ -1,6 +1,7 @@
 using Godot;
 using SakugaEngine;
 using SakugaEngine.Resources;
+using System.Threading.Tasks;
 
 namespace SakugaEngine.UI
 {
@@ -447,11 +448,46 @@ namespace SakugaEngine.UI
             GD.Print($"MatchSetup Complete: P1={P1Selected}, P2={P2Selected}, Stage={StageSelected}, BGM={BGMSelected}");
         }
 
+        private async Task FadeOutSelectionUI()
+        {
+            Tween fadeTween = null;
+
+            if (CharacterSelectMode != null || StageSelectMode != null)
+            {
+                fadeTween = CreateTween();
+                fadeTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+
+                if (CharacterSelectMode != null)
+                {
+                    Vector2 initialPosition = CharacterSelectMode.Position;
+                    fadeTween.TweenProperty(CharacterSelectMode, "modulate:a", 0.0f, 0.35f);
+                    fadeTween.Parallel().TweenProperty(CharacterSelectMode, "position", initialPosition + new Vector2(0, 50), 0.35f);
+                }
+
+                if (StageSelectMode != null)
+                {
+                    Vector2 initialPosition = StageSelectMode.Position;
+                    fadeTween.TweenProperty(StageSelectMode, "modulate:a", 0.0f, 0.35f);
+                    fadeTween.Parallel().TweenProperty(StageSelectMode, "position", initialPosition + new Vector2(0, 50), 0.35f);
+                }
+
+                await ToSignal(fadeTween, "finished");
+
+                if (CharacterSelectMode != null)
+                    CharacterSelectMode.Visible = false;
+
+                if (StageSelectMode != null)
+                    StageSelectMode.Visible = false;
+            }
+        }
+
         async void ShowBattleCard()
         {
             GD.Print("ShowBattleCard called");
             if (BattleCardLayer != null)
             {
+                await FadeOutSelectionUI();
+
                 GD.Print("BattleCardLayer found, displaying...");
                 BattleCardLayer.ZIndex = 100; // Ensure it's on top
                 BattleCardLayer.Visible = true;
@@ -478,14 +514,39 @@ namespace SakugaEngine.UI
                     P2ReadyRender.FlipH = true;
                 }
 
-                // Fade In
+                Vector2 p1Target = P1ReadyRender.Position;
+                Vector2 p2Target = P2ReadyRender.Position;
+                Vector2 vsTarget = VSLabel.Position;
+
+                float spreadDistance = 320.0f;
+                P1ReadyRender.Position = p1Target - new Vector2(spreadDistance, 0);
+                P2ReadyRender.Position = p2Target + new Vector2(spreadDistance, 0);
+                VSLabel.Position = vsTarget + new Vector2(0, -80);
+
+                VSLabel.Modulate = new Color(1, 1, 1, 0);
+                VSLabel.Scale = new Vector2(1.2f, 1.2f);
+
+                // Fade In and slide together
                 Tween tween = CreateTween();
-                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.5f);
+                tween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+
+                tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.6f);
+                tween.Parallel().TweenProperty(P1ReadyRender, "position", p1Target, 0.7f).SetTrans(Tween.TransitionType.Quart).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(P2ReadyRender, "position", p2Target, 0.7f).SetTrans(Tween.TransitionType.Quart).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(VSLabel, "position", vsTarget, 0.5f).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+                tween.Parallel().TweenProperty(VSLabel, "modulate:a", 1.0f, 0.5f);
+                tween.Parallel().TweenProperty(VSLabel, "scale", new Vector2(1, 1), 0.5f).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
+
                 await ToSignal(tween, "finished");
 
-                // Wait
+                // Wait with the card visible
                 GD.Print("Battle Card displayed, waiting 2.0s...");
                 await ToSignal(GetTree().CreateTimer(2.0f), "timeout");
+
+                Tween fadeOutTween = CreateTween();
+                fadeOutTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
+                fadeOutTween.TweenProperty(BattleCardLayer, "modulate:a", 0.0f, 0.6f);
+                await ToSignal(fadeOutTween, "finished");
             }
             else
             {

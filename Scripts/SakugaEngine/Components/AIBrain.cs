@@ -16,6 +16,7 @@ namespace SakugaEngine
         [Export] public int ThrowEscapeAction;
 
         [ExportCategory("Behaviors")]
+        [Export] private AIBehavior BehaviorRookie;
         [Export] private AIBehavior BehaviorBeginner;
         [Export] private AIBehavior BehaviorEasy;
         [Export] private AIBehavior BehaviorMedium;
@@ -25,6 +26,9 @@ namespace SakugaEngine
 
         private Global.BotMode mode = Global.BotMode.AGGRESSIVE;
         private AIBehavior currentBehavior;
+        private enum RangeBand { None, Near, Mid, Far, Distant }
+
+        private RangeBand currentRange = RangeBand.None;
         private int tick = 0;
         private int tickLimit = 1;
         private int inputTick = 0;
@@ -33,6 +37,12 @@ namespace SakugaEngine
         private int currentCommand = 0;
         private int currentInputIndex = 0;
         private int currentDecisionRate;
+        private int approachPauseTimer;
+        private int reactionDelayTimer;
+        private int[] pendingCommandList = Array.Empty<int>();
+        private bool openingSequenceActive;
+        private int openingPauseTimer;
+        private int openingTauntTimer;
         public bool canAdvance;
         public bool inputFinished = true;
         public bool blocking;
@@ -45,6 +55,9 @@ namespace SakugaEngine
 
             switch (Global.Match.botDifficulty)
             {
+                case Global.BotDifficulty.ROOKIE:
+                    currentBehavior = BehaviorRookie ?? BehaviorBeginner;
+                    break;
                 case Global.BotDifficulty.BEGINNER:
                     currentBehavior = BehaviorBeginner;
                     break;
@@ -63,9 +76,19 @@ namespace SakugaEngine
                 case Global.BotDifficulty.PRO:
                     currentBehavior = BehaviorPro;
                     break;
+                default:
+                    currentBehavior = BehaviorBeginner;
+                    break;
             }
 
             currentDecisionRate = 60;
+            openingSequenceActive = true;
+            openingPauseTimer = Global.RNG.Next(currentBehavior.OpeningPause.X, currentBehavior.OpeningPause.Y + 1);
+            openingTauntTimer = openingPauseTimer > 0 ? Global.RNG.Next(0, Mathf.Max(1, currentBehavior.OpeningPause.Y / 2)) : 0;
+            reactionDelayTimer = 0;
+            approachPauseTimer = 0;
+            pendingCommandList = Array.Empty<int>();
+            currentRange = RangeBand.None;
         }
 
         private int UpdateDecisionRateFree()
@@ -83,6 +106,102 @@ namespace SakugaEngine
             return Global.RNG.Next(currentBehavior.InputRandomness.X, currentBehavior.InputRandomness.Y + 1);
         }
 
+        private bool HandleOpeningSequence()
+        {
+            if (!openingSequenceActive) return false;
+
+            if (openingTauntTimer > 0)
+            {
+                _owner.ParseInputs(Global.INPUT_TAUNT);
+                openingTauntTimer--;
+                return true;
+            }
+
+            if (openingPauseTimer > 0)
+            {
+                currentCommandList = new int[] { 0 };
+                openingPauseTimer--;
+                tick = 0;
+                tickLimit = 1;
+                inputTick = 0;
+                inputTickLimit = 1;
+                return true;
+            }
+
+            openingSequenceActive = false;
+            Reset();
+            return false;
+        }
+
+        private bool HandleReactionDelayWindow()
+        {
+            if (pendingCommandList == null || pendingCommandList.Length == 0)
+                return false;
+
+            if (reactionDelayTimer > 0)
+            {
+                reactionDelayTimer--;
+                currentCommandList = new int[] { 0 };
+                tick = 0;
+                tickLimit = 1;
+                inputTick = 0;
+                inputTickLimit = 1;
+                return true;
+            }
+
+            currentCommandList = pendingCommandList;
+            pendingCommandList = Array.Empty<int>();
+            currentCommand = 0;
+            currentInputIndex = 0;
+            inputTick = 0;
+            inputTickLimit = SetInputRandomWaitTime();
+            return true;
+        }
+
+        private RangeBand GetRangeBand(AIActionPack pack)
+        {
+            if (pack == currentBehavior.NearActions) return RangeBand.Near;
+            if (pack == currentBehavior.MidActions) return RangeBand.Mid;
+            if (pack == currentBehavior.FarActions) return RangeBand.Far;
+            return RangeBand.Distant;
+        }
+
+        private bool ShouldWaitToApproach(RangeBand range)
+        {
+            if (approachPauseTimer > 0)
+            {
+                approachPauseTimer--;
+                currentCommandList = new int[] { 0 };
+                tick = 0;
+                tickLimit = 1;
+                inputTick = 0;
+                inputTickLimit = 1;
+                return true;
+            }
+
+            if ((currentBehavior.ApproachWait.X > 0 || currentBehavior.ApproachWait.Y > 0) &&
+                (range == RangeBand.Far || range == RangeBand.Distant) && range != currentRange)
+            {
+                approachPauseTimer = Global.RNG.Next(currentBehavior.ApproachWait.X, currentBehavior.ApproachWait.Y + 1);
+            }
+
+            currentRange = range;
+            return false;
+        }
+
+        private bool ShouldDelayForReaction(int[] commands)
+        {
+            if (commands == null || commands.Length == 0) return false;
+            if (currentBehavior.ReactionDelay == Vector2I.Zero) return false;
+
+            int firstCommand = Mathf.Clamp(commands[0], 0, Actions.Length - 1);
+            bool isAttack = firstCommand >= 4 && firstCommand <= 9;
+            bool isBlock = firstCommand == HighBlockAction || firstCommand == LowBlockAction;
+            bool isRetreat = firstCommand == 2 || firstCommand == 3;
+
+            return isAttack || isBlock || isRetreat;
+        }
+
         public void Reset()
         {
             if (!_owner.Body.ProximityBlocked)
@@ -95,6 +214,9 @@ namespace SakugaEngine
             teching = false;
             canAdvance = false;
             inputFinished = true;
+            approachPauseTimer = 0;
+            pendingCommandList = Array.Empty<int>();
+            reactionDelayTimer = 0;
         }
 
         public void SelectCommand()
@@ -182,6 +304,9 @@ namespace SakugaEngine
                 return;
             }
 
+            if (HandleOpeningSequence()) return;
+            if (HandleReactionDelayWindow()) return;
+
             //If a command is still running, let it do its thing
             if ((currentCommand >= currentCommandList.Length || (currentCommand >= 0 && inputFinished && !canAdvance
                 && !Actions[currentCommandList[currentCommand]].AutoAdvance)) && _owner.Stance.CurrentMove < 0)
@@ -223,6 +348,9 @@ namespace SakugaEngine
                 selectedList = currentBehavior.FarActions;
             else if (distance.X > currentBehavior.FarActions.HorizontalDistance)
                 selectedList = currentBehavior.DistantActions;
+
+            RangeBand selectedRange = GetRangeBand(selectedList);
+            if (ShouldWaitToApproach(selectedRange)) return;
 
             mode = _owner.Variables.CurrentHealth < currentBehavior.LowHealth ? Global.BotMode.DEFENSIVE : Global.BotMode.AGGRESSIVE;
 
@@ -285,6 +413,18 @@ namespace SakugaEngine
                     prevDistX = selectedList.Conditions[i].Distance.X;
                     prevDistY = selectedList.Conditions[i].Distance.Y;
                 }
+            }
+
+            if (ShouldDelayForReaction(currentCommandList))
+            {
+                pendingCommandList = currentCommandList;
+                reactionDelayTimer = Global.RNG.Next(currentBehavior.ReactionDelay.X, currentBehavior.ReactionDelay.Y + 1);
+                currentCommandList = new int[] { 0 };
+                tick = 0;
+                tickLimit = 1;
+                inputTick = 0;
+                inputTickLimit = 1;
+                return;
             }
 
             //If the new move is the same as the previous one, just keep moving

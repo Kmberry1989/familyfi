@@ -1,6 +1,7 @@
 using Godot;
 using SakugaEngine;
 using SakugaEngine.Resources;
+using System;
 using System.Threading.Tasks;
 
 namespace SakugaEngine.UI
@@ -49,6 +50,7 @@ namespace SakugaEngine.UI
         [Export] private HBoxContainer stagesContainer;
         [Export] private Texture2D randomStageThumbnail;
         [Export] private Texture2D autoStageThumbnail;
+        [Export] private OptionButton BotDifficultyOptions;
 
         //Hidden variables
         private bool P1Finished;
@@ -67,6 +69,7 @@ namespace SakugaEngine.UI
         private const double CpuHoverInterval = 0.25f;
 
         private System.Random randomSelection;
+        private Global.BotDifficulty selectedBotDifficulty = Global.BotDifficulty.MEDIUM;
 
         public override void _Ready()
         {
@@ -111,7 +114,28 @@ namespace SakugaEngine.UI
                 stagesContainer.AddChild(temp);
             }
 
+            SetupBotDifficultyOptions();
             StartCpuSelection();
+        }
+
+        private void SetupBotDifficultyOptions()
+        {
+            if (BotDifficultyOptions == null) return;
+
+            BotDifficultyOptions.Clear();
+            foreach (Global.BotDifficulty difficulty in Enum.GetValues(typeof(Global.BotDifficulty)))
+            {
+                string label = difficulty.ToString().Replace("_", " ");
+                BotDifficultyOptions.AddItem(label, (int)difficulty);
+            }
+
+            BotDifficultyOptions.Select((int)selectedBotDifficulty);
+            BotDifficultyOptions.ItemSelected += OnBotDifficultyOptionSelected;
+        }
+
+        private void OnBotDifficultyOptionSelected(long index)
+        {
+            selectedBotDifficulty = (Global.BotDifficulty)index;
         }
 
         private void StartCpuSelection()
@@ -464,7 +488,7 @@ namespace SakugaEngine.UI
             Global.Match.selectedBGM = BGMSelected;
             Global.Match.roundsToWin = 2;
             Global.Match.roundTime = 99;
-            Global.Match.botDifficulty = Global.BotDifficulty.MEDIUM;
+            Global.Match.botDifficulty = selectedBotDifficulty;
             Global.Match.selectedMode = Global.SelectedMode.VERSUS;
 
             GD.Print($"MatchSetup Complete: P1={P1Selected}, P2={P2Selected}, Stage={StageSelected}, BGM={BGMSelected}");

@@ -2,20 +2,18 @@
 
 [ext_resource type="Script" uid="uid://c1vwroelg1kwb" path="res://Scripts/SakugaEngine/Resources/FighterList.cs" id="1_x0sfh"]
 [ext_resource type="Script" uid="uid://dclkxgxahdy5l" path="res://Scripts/SakugaEngine/Resources/FighterElement.cs" id="3_m8lbm"]
-
-; New Fighters
-[ext_resource type="PackedScene" path="res://Fighters/ERIC/ERIC.tscn" id="eric_s"]
-[ext_resource type="Resource" path="res://Fighters/ERIC/ERIC_Profile.tres" id="eric_p"]
-[ext_resource type="PackedScene" path="res://Fighters/KYLE/KYLE.tscn" id="kyle_s"]
-[ext_resource type="Resource" path="res://Fighters/KYLE/KYLE_Profile.tres" id="kyle_p"]
-[ext_resource type="PackedScene" path="res://Fighters/DONALD/DONALD.tscn" id="donald_s"]
 [ext_resource type="Resource" path="res://Fighters/DONALD/DONALD_Profile.tres" id="donald_p"]
-[ext_resource type="PackedScene" path="res://Fighters/VICKIE/VICKIE.tscn" id="vickie_s"]
-[ext_resource type="Resource" path="res://Fighters/VICKIE/VICKIE_Profile.tres" id="vickie_p"]
-[ext_resource type="PackedScene" path="res://Fighters/KRISTEN/KRISTEN.tscn" id="kristen_s"]
+[ext_resource type="PackedScene" uid="uid://c1cuvly6prrxl" path="res://Fighters/DONALD/DONALD.tscn" id="donald_s"]
+[ext_resource type="Resource" path="res://Fighters/ERIC/ERIC_Profile.tres" id="eric_p"]
+[ext_resource type="PackedScene" path="res://Fighters/ERIC/ERIC.tscn" id="eric_s"]
 [ext_resource type="Resource" path="res://Fighters/KRISTEN/KRISTEN_Profile.tres" id="kristen_p"]
-[ext_resource type="PackedScene" path="res://Fighters/ROCHELLE/ROCHELLE.tscn" id="rochelle_s"]
+[ext_resource type="PackedScene" path="res://Fighters/KRISTEN/KRISTEN.tscn" id="kristen_s"]
+[ext_resource type="Resource" path="res://Fighters/KYLE/KYLE_Profile.tres" id="kyle_p"]
+[ext_resource type="PackedScene" path="res://Fighters/KYLE/KYLE.tscn" id="kyle_s"]
 [ext_resource type="Resource" path="res://Fighters/ROCHELLE/ROCHELLE_Profile.tres" id="rochelle_p"]
+[ext_resource type="PackedScene" uid="uid://bpjlbemm62nsw" path="res://Fighters/ROCHELLE/ROCHELLE.tscn" id="rochelle_s"]
+[ext_resource type="Resource" path="res://Fighters/VICKIE/VICKIE_Profile.tres" id="vickie_p"]
+[ext_resource type="PackedScene" path="res://Fighters/VICKIE/VICKIE.tscn" id="vickie_s"]
 
 [sub_resource type="Resource" id="sub_eric"]
 script = ExtResource("3_m8lbm")

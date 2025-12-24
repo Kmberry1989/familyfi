@@ -4,6 +4,7 @@ using System;
 
 namespace SakugaEngine
 {
+    // AIBrain: Handles AI decision making
     [GlobalClass]
     public partial class AIBrain : Node
     {
@@ -79,6 +80,19 @@ namespace SakugaEngine
                 default:
                     currentBehavior = BehaviorBeginner;
                     break;
+            }
+
+            if (currentBehavior == null)
+            {
+                // Fallback: Try to find ANY valid behavior to prevent crash
+                currentBehavior = BehaviorRookie ?? BehaviorBeginner ?? BehaviorEasy ?? BehaviorMedium ?? BehaviorHard ?? BehaviorVeryHard ?? BehaviorPro;
+
+                if (currentBehavior == null)
+                {
+                    GD.PrintErr($"AIBrain: No AI Behaviors assigned for {_owner?.Name ?? "Unknown Fighter"}! AI will be inactive.");
+                    return;
+                }
+                GD.Print($"AIBrain: Requested difficulty {Global.Match.botDifficulty} not found. Using fallback behavior.");
             }
 
             currentDecisionRate = 60;
@@ -269,12 +283,12 @@ namespace SakugaEngine
                                             currentCommandList[0] = ForwardRecoveryAction;
                                         break;
                                 }
-                                
-                                
+
+
                             }
                             teching = true;
                         }
-                        
+
                         return;
                     }
                 }
@@ -544,7 +558,7 @@ namespace SakugaEngine
                 result |= left;
             if ((input.Direction & Global.DirectionalInputs.RIGHT) > 0)
                 result |= right;
-            
+
             // Face button inputs
             if ((input.Buttons & Global.ButtonInputs.FACE_A) > 0)
                 result |= Global.INPUT_FACE_A;

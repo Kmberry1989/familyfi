@@ -1,10 +1,9 @@
-[gd_scene load_steps=19 format=3 uid="uid://du8qdk1pkkc5e"]
+[gd_scene load_steps=18 format=3 uid="uid://du8qdk1pkkc5e"]
 
 [ext_resource type="Script" uid="uid://cei16d41occwt" path="res://Scripts/SakugaEngine/UI/SelectScreen.cs" id="1_c6n7t"]
 [ext_resource type="Resource" uid="uid://c8s3ip7gkhwq6" path="res://Roster.tres" id="2_d1pnq"]
 [ext_resource type="Resource" uid="uid://bl30fi0muatu1" path="res://StageSelect.tres" id="3_qnnlv"]
 [ext_resource type="Resource" uid="uid://fxj4uvd0y37r" path="res://Soundtrack.tres" id="4_i5d7u"]
-[ext_resource type="Texture2D" uid="uid://c3cyqacvyusmv" path="res://Fighters/Dummy/capsule_render.png" id="5_v0euj"]
 [ext_resource type="PackedScene" uid="uid://dw8jr0o1wc7hl" path="res://Scenes/Instances/CharSelectPortrait.tscn" id="6_5y3p4"]
 [ext_resource type="Texture2D" uid="uid://dovvnevt722ck" path="res://Sprites/Char_Random.png" id="6_pej5c"]
 [ext_resource type="Texture2D" uid="uid://76j3dxo635sm" path="res://Stages/Sakuga Default/Sakuga_Default_Thumbnail.png" id="6_vt3nd"]
@@ -19,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://c3cyqacvyusmv" path="res://Fighters/Dummy/capsule_render.png" id="12_7p58r"]
 [ext_resource type="Texture2D" uid="uid://cw7llwhkqnheo" path="res://Sprites/Arrow.png" id="18_7p58r"]
 
-[node name="Control" type="Control" node_paths=PackedStringArray("BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer", "BotDifficultyOptions")]
+[node name="Control" type="Control" node_paths=PackedStringArray("CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer", "BotDifficultyOptions")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,10 +29,6 @@ script = ExtResource("1_c6n7t")
 fightersList = ExtResource("2_d1pnq")
 stagesList = ExtResource("3_qnnlv")
 songsList = ExtResource("4_i5d7u")
-BattleCardLayer = NodePath("BattleCardLayer")
-P1ReadyRender = NodePath("BattleCardLayer/P1Ready")
-P2ReadyRender = NodePath("BattleCardLayer/P2Ready")
-VSLabel = NodePath("BattleCardLayer/VSLabel")
 CharacterSelectMode = NodePath("CharacterSelect")
 StageSelectMode = NodePath("StageSelect")
 P1SelectedRender = NodePath("P1SelectedRender")
@@ -46,6 +41,10 @@ charactersButtonElement = ExtResource("6_5y3p4")
 charactersContainer = NodePath("CharacterSelect/GridContainer")
 randomCharPortrait = ExtResource("6_pej5c")
 randomCharRender = ExtResource("7_7p58r")
+BattleCardLayer = NodePath("BattleCardLayer")
+P1ReadyRender = NodePath("BattleCardLayer/P1Ready")
+P2ReadyRender = NodePath("BattleCardLayer/P2Ready")
+VSLabel = NodePath("BattleCardLayer/VSLabel")
 StageSelectedRender = NodePath("StagePortrait")
 StageSelectedName = NodePath("StageSelect/StageName")
 SongSelectedName = NodePath("StageSelect/SongName")
@@ -91,7 +90,7 @@ offset_left = -596.0
 offset_top = -100.0
 offset_bottom = 880.0
 grow_horizontal = 0
-texture = ExtResource("5_v0euj")
+texture = ExtResource("12_7p58r")
 expand_mode = 1
 stretch_mode = 5
 
@@ -144,9 +143,9 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
 offset_left = 0.0
-offset_top = 0.0
+offset_top = -2.0
 offset_right = 150.0
-offset_bottom = 150.0
+offset_bottom = 148.0
 grow_horizontal = 1
 grow_vertical = 1
 texture = ExtResource("10_vt3nd")
@@ -166,7 +165,6 @@ horizontal_alignment = 1
 
 [node name="P1SelectedName" type="Label" parent="CharacterSelect"]
 layout_mode = 1
-anchors_preset = 0
 offset_left = 20.0
 offset_top = -80.0
 offset_right = 420.0
@@ -199,9 +197,7 @@ grow_vertical = 2
 
 [node name="Title" type="Label" parent="StageSelect"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
+anchors_preset = -1
 anchor_left = -197.0
 anchor_right = 197.0
 offset_bottom = 69.0
@@ -301,7 +297,6 @@ horizontal_alignment = 2
 [node name="BotDifficulty" type="OptionButton" parent="StageSelect/BotDifficultyContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-item_count = 0
 
 [node name="StageSelectCursor" type="Control" parent="StageSelect"]
 layout_mode = 1

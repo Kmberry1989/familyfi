@@ -51,11 +51,7 @@ namespace SakugaEngine.UI
 
         public override void _GuiInput(InputEvent @event)
         {
-            if (@event is InputEventMouseButton mouseEvent && mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left)
-            {
-                EmitSignal(SignalName.OnPressed, this);
-            }
-            else if (@event is InputEventScreenTouch touchEvent && touchEvent.Pressed)
+            if (@event is InputEventScreenTouch touchEvent && touchEvent.Pressed)
             {
                 EmitSignal(SignalName.OnPressed, this);
             }

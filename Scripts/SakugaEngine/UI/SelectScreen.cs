@@ -57,6 +57,7 @@ namespace SakugaEngine.UI
         private bool P2Finished;
         private bool isPlayer1SelectingStage = true;
         private bool AllSet = false;
+        private bool hasP1Interacted = false;
         private CharSelectButton[] characterButtons;
         private StageSelectButton[] stageSelectionButtons;
 
@@ -66,7 +67,7 @@ namespace SakugaEngine.UI
         private double cpuMoveTimer = 0.0f;
         private double cpuSelectionDuration = 2.0f;
 
-        private const double CpuHoverInterval = 0.25f;
+        private const double CpuHoverInterval = 0.5f;
 
         private System.Random randomSelection;
         private Global.BotDifficulty selectedBotDifficulty = Global.BotDifficulty.MEDIUM;
@@ -173,11 +174,15 @@ namespace SakugaEngine.UI
             if (P1Selected != btn.Index)
             {
                 P1Selected = btn.Index;
+                hasP1Interacted = true;
                 // Visual update happens in _PhysicsProcess currently
             }
             else
             {
-                ConfirmPlayer1();
+                if (!hasP1Interacted)
+                    hasP1Interacted = true;
+                else
+                    ConfirmPlayer1();
             }
         }
 
@@ -235,8 +240,6 @@ namespace SakugaEngine.UI
             bool P1Confirm = Input.IsActionJustPressed("k1_face_a");
             bool P1Return = Input.IsActionJustPressed("k1_face_b");
             //Player 2 inputs
-            bool P2Up = Input.IsActionJustPressed("k2_up");
-            bool P2Down = Input.IsActionJustPressed("k2_down");
             bool P2Left = Input.IsActionJustPressed("k2_left");
             bool P2Right = Input.IsActionJustPressed("k2_right");
             bool P2Confirm = Input.IsActionJustPressed("k2_face_a");
@@ -258,43 +261,53 @@ namespace SakugaEngine.UI
                         {
                             P1Selected -= charactersContainer.Columns;
                             if (P1Selected < 0) P1Selected = 0;
+                            hasP1Interacted = true;
                         }
                         if (P1Down)
                         {
                             P1Selected += charactersContainer.Columns;
                             if (P1Selected >= fightersList.elements.Length)
                                 P1Selected = fightersList.elements.Length - 1;
+                            hasP1Interacted = true;
                         }
                         if (P1Left)
                         {
                             P1Selected--;
                             if (P1Selected < 0) P1Selected = 0;
+                            hasP1Interacted = true;
                         }
                         if (P1Right)
                         {
                             P1Selected++;
                             if (P1Selected >= fightersList.elements.Length)
                                 P1Selected = fightersList.elements.Length - 1;
+                            hasP1Interacted = true;
                         }
                         if (P1Confirm)
                         {
-                            ConfirmPlayer1();
+                            if (!hasP1Interacted)
+                                hasP1Interacted = true; // First "confirm" just interacts/selects if haven't yet
+                            else
+                                ConfirmPlayer1();
                         }
                     }
 
                     if (isCpuSelecting)
                     {
-                        cpuSelectionTimer += delta;
-                        cpuMoveTimer += delta;
-
-                        if (cpuMoveTimer > CpuHoverInterval)
+                        if (!P1Finished)
                         {
-                            P2Selected = GetCpuRandomSelection();
-                            cpuMoveTimer = 0.0f;
+                            // Continue browsing while P1 is selecting
+                            cpuMoveTimer += delta;
+
+                            if (cpuMoveTimer > CpuHoverInterval)
+                            {
+                                P2Selected = GetCpuRandomSelection();
+                                cpuMoveTimer = 0.0f;
+                            }
                         }
-
-                        if (cpuSelectionTimer > cpuSelectionDuration)
+                        else
                         {
+                            // P1 Finished, lock in CPU
                             isCpuSelecting = false;
 
                             // Final Selection
@@ -311,6 +324,7 @@ namespace SakugaEngine.UI
                             characterButtons[P2Selected].IsSelected = false;
                             P1Finished = false;
                             P2Finished = false; // Reset P2 as well
+                            hasP1Interacted = false;
                             StartCpuSelection();
                         }
                     }
@@ -337,17 +351,7 @@ namespace SakugaEngine.UI
                             if (StageSelected >= stagesList.elements.Length)
                                 StageSelected = stagesList.elements.Length - 1;
                         }
-                        if (P1Up)
-                        {
-                            BGMSelected--;
-                            if (BGMSelected < -2) BGMSelected = -2;
-                        }
-                        if (P1Down)
-                        {
-                            BGMSelected++;
-                            if (BGMSelected >= songsList.elements.Length)
-                                BGMSelected = songsList.elements.Length - 1;
-                        }
+                        // Removed BGM Selection Up/Down
                         if (P1Confirm)
                         {
                             ConfirmStage();
@@ -373,17 +377,7 @@ namespace SakugaEngine.UI
                             if (StageSelected >= stagesList.elements.Length)
                                 StageSelected = stagesList.elements.Length - 1;
                         }
-                        if (P2Up)
-                        {
-                            BGMSelected--;
-                            if (BGMSelected < -2) BGMSelected = -2;
-                        }
-                        if (P2Down)
-                        {
-                            BGMSelected++;
-                            if (BGMSelected >= songsList.elements.Length)
-                                BGMSelected = songsList.elements.Length - 1;
-                        }
+                        // Removed BGM Selection Up/Down
                         if (P2Confirm)
                         {
                             ConfirmStage();
@@ -392,6 +386,7 @@ namespace SakugaEngine.UI
                         {
                             P1Finished = false;
                             P2Finished = false;
+                            hasP1Interacted = false;
                             characterButtons[P1Selected].IsSelected = false;
                             characterButtons[P2Selected].IsSelected = false;
                         }
@@ -460,12 +455,7 @@ namespace SakugaEngine.UI
                 StageSelectedRender.Texture = null;
             }
 
-            if (BGMSelected == -2)//Auto
-                SongSelectedName.Text = "Auto";
-            else if (BGMSelected == -1)//Random
-                SongSelectedName.Text = "Random";
-            else if (BGMSelected >= 0)
-                SongSelectedName.Text = songsList.elements[BGMSelected].SongName;
+            // Removed BGM UI Update
         }
 
         void MatchSetup()
@@ -488,7 +478,7 @@ namespace SakugaEngine.UI
             Global.Match.selectedBGM = BGMSelected;
             Global.Match.roundsToWin = 2;
             Global.Match.roundTime = 99;
-            Global.Match.botDifficulty = selectedBotDifficulty;
+            Global.Match.botDifficulty = Global.BotDifficulty.ROOKIE; // Forces Rookie
             Global.Match.selectedMode = Global.SelectedMode.VERSUS;
 
             GD.Print($"MatchSetup Complete: P1={P1Selected}, P2={P2Selected}, Stage={StageSelected}, BGM={BGMSelected}");
@@ -496,11 +486,9 @@ namespace SakugaEngine.UI
 
         private async Task FadeOutSelectionUI()
         {
-            Tween fadeTween = null;
-
             if (CharacterSelectMode != null || StageSelectMode != null)
             {
-                fadeTween = CreateTween();
+                Tween fadeTween = CreateTween();
                 fadeTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
 
                 if (CharacterSelectMode != null)
@@ -538,26 +526,8 @@ namespace SakugaEngine.UI
                 BattleCardLayer.ZIndex = 100; // Ensure it's on top
 
                 // Smoothly hide the select UI before showing the card
-                Control[] selectGroups = new Control[] { CharacterSelectMode, StageSelectMode };
-                Tween selectTween = CreateTween();
-                foreach (Control control in selectGroups)
-                {
-                    if (control == null || !control.Visible)
-                        continue;
-
-                    Vector2 startPosition = control.Position;
-                    selectTween.Parallel().TweenProperty(control, "modulate:a", 0.0f, 0.35f)
-                        .SetTrans(Tween.TransitionType.Cubic)
-                        .SetEase(Tween.EaseType.In);
-                    selectTween.Parallel().TweenProperty(control, "position:y", startPosition.Y + 60.0f, 0.35f)
-                        .SetTrans(Tween.TransitionType.Cubic)
-                        .SetEase(Tween.EaseType.In);
-
-                    selectTween.Parallel().TweenCallback(Callable.From(() => control.Visible = false));
-                }
-
-                if (selectTween.IsValid())
-                    await ToSignal(selectTween, "finished");
+                // Note: FadeOutSelectionUI already handled visibility and fade out.
+                // The previous redundant selectTween block here was causing a hang because it awaited an empty tween.
 
                 BattleCardLayer.Visible = true;
                 BattleCardLayer.Modulate = new Color(1, 1, 1, 0);
@@ -650,7 +620,7 @@ namespace SakugaEngine.UI
                 VSLabel.Scale = new Vector2(1.2f, 1.2f);
 
                 // Fade In and slide together
-                Tween tween = CreateTween();
+                tween = CreateTween();
                 tween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 
                 tween.TweenProperty(BattleCardLayer, "modulate:a", 1.0f, 0.6f);
@@ -666,7 +636,7 @@ namespace SakugaEngine.UI
                 GD.Print("Battle Card displayed, waiting 2.0s...");
                 await ToSignal(GetTree().CreateTimer(2.0f), "timeout");
 
-                Tween fadeOutTween = CreateTween();
+                fadeOutTween = CreateTween();
                 fadeOutTween.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.In);
                 fadeOutTween.TweenProperty(BattleCardLayer, "modulate:a", 0.0f, 0.6f);
                 await ToSignal(fadeOutTween, "finished");
@@ -676,8 +646,8 @@ namespace SakugaEngine.UI
                 GD.PrintErr("BattleCardLayer is NULL! Skipping transition effect.");
             }
 
-            GD.Print("Transitioning to TestScene...");
-            GetTree().ChangeSceneToFile("res://Scenes/TestScene.tscn");
+            GD.Print("Transitioning to FightScene...");
+            GetTree().ChangeSceneToFile("res://Scenes/FightScene.tscn");
         }
     }
 }

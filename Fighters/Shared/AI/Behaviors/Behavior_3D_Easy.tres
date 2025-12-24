@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AIBehavior" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="AIBehavior" load_steps=5 format=3 uid="uid://du2sms0ga76el"]
 
-[ext_resource type="Script" path="res://Scripts/SakugaEngine/Resources/AI/AIBehavior.cs" id="1_behav"]
+[ext_resource type="Script" uid="uid://bdbcupbr6mour" path="res://Scripts/SakugaEngine/Resources/AI/AIBehavior.cs" id="1_behav"]
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Packs/Pack_Near.tres" id="2_near"]
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Packs/Pack_Mid.tres" id="3_mid"]
 [ext_resource type="Resource" path="res://Fighters/Shared/AI/Packs/Pack_Far.tres" id="4_far"]
@@ -13,10 +13,6 @@ InputRandomness = Vector2i(0, 5)
 BlockingRate = 3
 TechingRate = 3
 PredictionQuality = 3
-LowHealth = 4000
-OpeningPause = Vector2i(20, 40)
-ApproachWait = Vector2i(8, 20)
-ReactionDelay = Vector2i(6, 12)
 NearActions = ExtResource("2_near")
 MidActions = ExtResource("3_mid")
 FarActions = ExtResource("4_far")

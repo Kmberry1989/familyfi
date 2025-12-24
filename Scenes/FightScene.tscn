@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bpw1j1le60ict"]
+[gd_scene load_steps=10 format=3 uid="uid://8dyw42mehfxt"]
 
 [ext_resource type="Script" uid="uid://xmbdtaq2pt7v" path="res://Scripts/SakugaEngine/Game/GameManager.cs" id="1_ocl0l"]
 [ext_resource type="PackedScene" uid="uid://blnwu2aaw8s60" path="res://Scenes/Instances/Sakuga_UI.tscn" id="1_wexcy"]

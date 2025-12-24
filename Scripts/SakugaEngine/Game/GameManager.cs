@@ -63,7 +63,7 @@ namespace SakugaEngine.Game
             fightBanner = FighterUI.GetNodeOrNull<Control>("FightBanner");
             fightLabel = fightBanner?.GetNodeOrNull<Label>("FightLabel");
             if (fightBanner != null) fightBanner.Visible = false;
-            Nodes = new();
+            Nodes = [];
         }
 
         public override void _Process(double delta)
@@ -143,6 +143,12 @@ namespace SakugaEngine.Game
 
         public void Setup()
         {
+            // Sync with Global Match settings
+            player1Character = Global.Match.Player1.selectedCharacter;
+            player2Character = Global.Match.Player2.selectedCharacter;
+            selectedStage = Global.Match.selectedStage;
+            selectedBGM = Global.Match.selectedBGM;
+
             if (GetChildren().Count > 0)
             {
                 foreach (Node child in GetChildren())
@@ -163,7 +169,7 @@ namespace SakugaEngine.Game
             CreateStage(selectedStage);
 
             World = new PhysicsWorld();
-            if (Nodes == null) Nodes = new();
+            if (Nodes == null) Nodes = [];
             Nodes.Clear();
             Fighters = new SakugaFighter[2];
 
@@ -274,7 +280,7 @@ namespace SakugaEngine.Game
             Fighters[1].PlayNeutralState();
         }
 
-        private Vector2I? GetSpawnPosition(Node3D spawn)
+        private static Vector2I? GetSpawnPosition(Node3D spawn)
         {
             if (spawn == null) return null;
 
@@ -303,9 +309,9 @@ namespace SakugaEngine.Game
             return maxDuration;
         }
 
-        private ushort GetAdvanceInput(SakugaFighter fighter)
+        private static ushort GetAdvanceInput(SakugaFighter fighter)
         {
-            return fighter.Body.IsLeftSide ? Global.INPUT_RIGHT : Global.INPUT_LEFT;
+            return (ushort)(fighter.Body.IsLeftSide ? Global.INPUT_RIGHT : Global.INPUT_LEFT);
         }
 
         private void ShowFightLabel(bool visible)
@@ -328,7 +334,7 @@ namespace SakugaEngine.Game
 
             Vector3 targetCameraPosition = Camera.CalculateFollowPosition(Fighters[0], Fighters[1]);
             cameraFollowLocked = true;
-            SceneTreeTween dolly = Camera.PlayIntroDolly(targetCameraPosition, introDollyDuration);
+            Tween dolly = Camera.PlayIntroDolly(targetCameraPosition, introDollyDuration);
             if (dolly != null)
                 await ToSignal(dolly, "finished");
 
@@ -616,13 +622,13 @@ namespace SakugaEngine.Game
                 }
 
                 AddSharedAnimationsToLibrary(library, sharedAnimations, aliases);
-                EnsureDefaultAnimations(fighter, playerIndex, targetPlayer, library);
+                EnsureDefaultAnimations(fighter, playerIndex, library);
             }
 
             GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", fighter.Animator.players[0].GetAnimationList())}");
         }
 
-        private Animation LoadAnimationFromResource(string path, string debugName)
+        private static Animation LoadAnimationFromResource(string path, string debugName)
         {
             var loadedRes = GD.Load(path);
             if (loadedRes == null)
@@ -673,8 +679,8 @@ namespace SakugaEngine.Game
                     string pathStr = startAnim.TrackGetPath(i).ToString();
                     if (pathStr.Contains("Skeleton:"))
                     {
-                        int colonIndex = pathStr.IndexOf(":");
-                        string boneName = pathStr.Substring(colonIndex + 1);
+                        int colonIndex = pathStr.IndexOf(':');
+                        string boneName = pathStr[(colonIndex + 1)..];
                         startAnim.TrackSetPath(i, new NodePath($"GeneralSkeleton:{boneName}"));
                     }
                 }
@@ -718,7 +724,7 @@ namespace SakugaEngine.Game
             return sharedAnimations;
         }
 
-        private void AddSharedAnimationsToLibrary(AnimationLibrary library, Dictionary<string, Animation> sharedAnimations, Dictionary<string, List<string>> aliases)
+        private static void AddSharedAnimationsToLibrary(AnimationLibrary library, Dictionary<string, Animation> sharedAnimations, Dictionary<string, List<string>> aliases)
         {
             foreach (var kvp in sharedAnimations)
             {
@@ -741,7 +747,7 @@ namespace SakugaEngine.Game
             }
         }
 
-        private void EnsureDefaultAnimations(SakugaFighter fighter, int playerIndex, AnimationPlayer player, AnimationLibrary library)
+        private void EnsureDefaultAnimations(SakugaFighter fighter, int playerIndex, AnimationLibrary library)
         {
             if (fighter.Animator?.States == null || fighter.Animator.States.Length == 0)
                 return;
@@ -752,7 +758,7 @@ namespace SakugaEngine.Game
 
             Animation fallback = GetFallbackAnimation(library, prefix);
 
-            HashSet<string> requiredAnimations = new HashSet<string>();
+            HashSet<string> requiredAnimations = [];
             foreach (var state in fighter.Animator.States)
             {
                 if (state?.animationSettings == null) continue;
@@ -774,7 +780,7 @@ namespace SakugaEngine.Game
 
         private Animation GetFallbackAnimation(AnimationLibrary library, string prefix)
         {
-            string[] candidates = new string[] { prefix + "Idle", "Idle" };
+            string[] candidates = [prefix + "Idle", "Idle"];
             foreach (var candidate in candidates)
             {
                 if (library.HasAnimation(candidate))
@@ -788,11 +794,13 @@ namespace SakugaEngine.Game
             return CreatePlaceholderAnimation();
         }
 
-        private Animation CreatePlaceholderAnimation()
+        private static Animation CreatePlaceholderAnimation()
         {
-            var placeholder = new Animation();
-            placeholder.Length = 0.1f;
-            placeholder.LoopMode = Animation.LoopModeEnum.Linear;
+            var placeholder = new Animation
+            {
+                Length = 0.1f,
+                LoopMode = Animation.LoopModeEnum.Linear
+            };
             return placeholder;
         }
     }

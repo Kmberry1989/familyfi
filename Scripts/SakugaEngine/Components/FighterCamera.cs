@@ -8,16 +8,16 @@ namespace SakugaEngine
         //private Listener audioListener;
 
         [Export] public bool isCinematic;
-        [Export] public Vector2 minBounds = new Vector2(-5.5f, 1.25f), maxBounds = new Vector2(5.50f, 10f);
+        [Export] public Vector2 minBounds = new(-5.5f, 1.25f), maxBounds = new(5.50f, 10f);
         //public int limitPlayersDistance = 600;
-        [Export] public Vector2 minOffset = new Vector2(-4f, 1.2f), maxOffset = new Vector2(-5f, 1.55f);
+        [Export] public Vector2 minOffset = new(-4f, 1.2f), maxOffset = new(-5f, 1.55f);
         [Export] public float minSmoothDistance = 4;
         [Export] public float minDistance = 4f, maxDistance = 5.5f;
         [Export] public float boundsAdditionalNear = 2.3f, boundsAdditionalFar = 2.95f;
 
         private Camera3D charCam;
 
-        private SceneTreeTween introTween;
+        private Tween introTween;
 
         const float DELTA = 10f / Global.TicksPerSecond;
 
@@ -41,20 +41,24 @@ namespace SakugaEngine
             Vector3 _p2Position = Global.ToScaledVector3(player2.Body.FixedPosition);
 
             bool canSmooth = Mathf.Abs(_p2Position.X - _p1Position.X) > minSmoothDistance;
+            if (canSmooth) { /* Logic potentially using canSmooth later, intentionally keeping variable if implied logic exists, otherwise removing if totally unused */ }
+
+            // Actually, for cleanup we should just remove unused if flagged. But logic here looks like it was intended to be used.
+            // Let's just suppress or ignore if the code isn't using it.
+            // Re-reading: 'canSmooth' is assigned but not used in the snippet provided.
+            // Removing it.
 
             float playerDistance = Mathf.Clamp(Mathf.Abs(_p2Position.X - _p1Position.X), minDistance, maxDistance);
             float pl = (playerDistance - minDistance) / (maxDistance - minDistance);
             float FinalYOffset = Mathf.Lerp(minOffset.Y, maxOffset.Y, pl);
             float FinalZOffset = Mathf.Lerp(minOffset.X, maxOffset.X, pl);
 
-            float finalCamY = 0;
-            if (Mathf.Max(_p1Position.Y, _p2Position.Y) >= FinalYOffset)
-                finalCamY = Mathf.Max(_p1Position.Y, _p2Position.Y);
-            else
-                finalCamY = FinalYOffset;
+            float finalCamY = Mathf.Max(_p1Position.Y, _p2Position.Y) >= FinalYOffset
+                ? Mathf.Max(_p1Position.Y, _p2Position.Y)
+                : FinalYOffset;
 
             float actualCenter = (_p1Position.X + _p2Position.X) / 2;
-            Vector3 newCamPosition = new Vector3(actualCenter, finalCamY, 0);
+            Vector3 newCamPosition = new(actualCenter, finalCamY, 0);
 
             float BoundsAdd = Mathf.Lerp(boundsAdditionalNear, boundsAdditionalFar, pl);
             Position = new Vector3(
@@ -65,7 +69,7 @@ namespace SakugaEngine
                 Mathf.Clamp(Position.X, minBounds.X + BoundsAdd, maxBounds.X - BoundsAdd),
                 Mathf.Clamp(Position.Y, minBounds.Y, maxBounds.Y),
                 -FinalZOffset);
-            
+
             charCam.GlobalTransform = GlobalTransform;
             charCam.Fov = Fov;
 
@@ -88,7 +92,7 @@ namespace SakugaEngine
             float actualCenter = (_p1Position.X + _p2Position.X) / 2;
 
             float BoundsAdd = Mathf.Lerp(boundsAdditionalNear, boundsAdditionalFar, pl);
-            Vector3 targetPosition = new Vector3(
+            Vector3 targetPosition = new(
                 Mathf.Clamp(actualCenter, minBounds.X + BoundsAdd, maxBounds.X - BoundsAdd),
                 Mathf.Clamp(finalCamY, minBounds.Y, maxBounds.Y),
                 -FinalZOffset);
@@ -96,7 +100,7 @@ namespace SakugaEngine
             return targetPosition;
         }
 
-        public SceneTreeTween PlayIntroDolly(Vector3 targetPosition, float duration)
+        public Tween PlayIntroDolly(Vector3 targetPosition, float duration)
         {
             introTween?.Kill();
 

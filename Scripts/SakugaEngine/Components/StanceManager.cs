@@ -58,14 +58,14 @@ namespace SakugaEngine
             bool isDesiredHealth = owner.Variables.CurrentHealth >= GetMove(index).HealthThreshold.X &&
                 owner.Variables.CurrentHealth <= GetMove(index).HealthThreshold.Y;
             if (!isDesiredHealth) return false;
-            
+
             if (owner.Variables.CurrentSuperGauge < GetMove(index).SuperGaugeRequired) return false;
 
             if (!owner.Variables.CompareExtraVariables(GetMove(index).ExtraVariablesRequirement)) return false;
-            
+
             bool AllowedFrameWindow = owner.Animator.GetCurrentState().Loop || !owner.Animator.GetCurrentState().Loop && owner.Animator.Frame < GetMove(index).FrameLimit;
             if (GetMove(index).FrameLimit > 0 && !AllowedFrameWindow) return false;
-            
+
             return true;
         }
 
@@ -76,17 +76,22 @@ namespace SakugaEngine
             if (CurrentMove >= 0)
                 owner.Variables.AddSuperGauge(GetCurrentMove().BuildSuperGauge);
 
+            // Log how many moves we are checking
+            // if (owner.Inputs.InputSide == owner.Body.PlayerSide) GD.Print($"CheckMoves: Checking {GetMoveListLength()} moves.");
+
             for (int i = GetMoveListLength() - 1; i >= 0; i--)
             {
                 if (!CheckMoveConditions(i)) continue;
-                if (owner.Inputs.CheckMotionInputs(GetMove(i).Inputs))
+                bool inputCheck = owner.Inputs.CheckMotionInputs(GetMove(i).Inputs);
+                if (inputCheck)
                 {
+                    GD.Print($"CheckMoves: Move {i} Input Success!");
                     BufferedMove = i;
                     owner.MoveBuffer.Start();
                     break;
                 }
             }
-            
+
             AttackBufferStorage();
             ChargeButtonSequence();
             CheckMoveEndCondition();
@@ -106,11 +111,11 @@ namespace SakugaEngine
                 owner.GetOpponent().HitStop.Start((uint)GetMove(BufferedMove).SuperFlash);
             }
 
-            if (GetMove(BufferedMove).MoveState >= 0) 
+            if (GetMove(BufferedMove).MoveState >= 0)
                 owner.Animator.PlayState(GetMove(BufferedMove).MoveState, true);
-            
+
             owner.Variables.ExtraVariablesOnMoveEnter();
-            
+
             owner.Variables.SetExtraVariables(GetMove(BufferedMove).ExtraVariablesChange);
 
             CurrentMove = BufferedMove;
@@ -132,21 +137,21 @@ namespace SakugaEngine
                 }
                 else if (!owner.HitStop.IsRunning())
                 {
-                    bool CanOverride = CurrentMove < 0 || (GetCurrentMove().CanBeOverrided && 
-                                        (GetCurrentMove().IgnoreSamePriority ? 
-                                        GetMove(BufferedMove).Priority > GetCurrentMove().Priority : 
+                    bool CanOverride = CurrentMove < 0 || (GetCurrentMove().CanBeOverrided &&
+                                        (GetCurrentMove().IgnoreSamePriority ?
+                                        GetMove(BufferedMove).Priority > GetCurrentMove().Priority :
                                         GetMove(BufferedMove).Priority >= GetCurrentMove().Priority));
-                    
+
                     bool allowMoveCancel = CanMoveCancel || owner.Body.ContainsFrameProperty((byte)Global.FrameProperties.FORCE_MOVE_CANCEL);
-                    
-                    bool canCancelThis = (allowMoveCancel && CanCancel()) || 
+
+                    bool canCancelThis = (allowMoveCancel && CanCancel()) ||
                                 (owner.Animator.Frame < Global.KaraCancelWindow && CanKaraCancel());
-                                        
-                    bool isValidStateType = GetMove(BufferedMove).WaitForNullStates ? 
+
+                    bool isValidStateType = GetMove(BufferedMove).WaitForNullStates ?
                                             (owner.Animator.GetCurrentState().Type > Global.StateType.NULL &&
                                             owner.Animator.GetCurrentState().Type <= Global.StateType.COMBAT) :
                                             owner.Animator.GetCurrentState().Type <= Global.StateType.COMBAT;
-                    
+
                     if (isValidStateType && (CanOverride || canCancelThis))
                     {
                         ExecuteMove();
@@ -213,9 +218,9 @@ namespace SakugaEngine
         {
             if (GetCurrentMove().MoveEndState >= 0)
                 owner.Animator.PlayState(GetCurrentMove().MoveEndState, false);
-            
+
             if (CanMoveCancel) CanMoveCancel = false;
-            
+
             if (GetCurrentMove().ChangeStance >= 0)
             {
                 CurrentStance = GetCurrentMove().ChangeStance;
@@ -236,7 +241,7 @@ namespace SakugaEngine
         {
             if (GetMove(index).IsSequenceFromStates == null) return true;
             if (GetMove(index).IsSequenceFromStates.Length <= 0) return true;
-            
+
             foreach (int possibleStates in GetMove(index).IsSequenceFromStates)
             {
                 if (owner.Animator.CurrentState == possibleStates)
@@ -249,7 +254,7 @@ namespace SakugaEngine
         {
             if (GetMove(index).IgnoreStates == null) return true;
             if (GetMove(index).IgnoreStates.Length <= 0) return true;
-            
+
             foreach (int possibleStates in GetMove(index).IgnoreStates)
             {
                 if (owner.Animator.CurrentState == possibleStates)
@@ -278,11 +283,11 @@ namespace SakugaEngine
             if (GetCurrentMove().KaraCancelsTo == null) return false;
             if (GetCurrentMove().KaraCancelsTo.Length <= 0) return false;
 
-                foreach (int possibleKaraCancel in GetCurrentMove().KaraCancelsTo)
-                {
-                    if (BufferedMove == possibleKaraCancel)
-                        return true;
-                }
+            foreach (int possibleKaraCancel in GetCurrentMove().KaraCancelsTo)
+            {
+                if (BufferedMove == possibleKaraCancel)
+                    return true;
+            }
             return false;
         }
 

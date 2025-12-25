@@ -324,19 +324,24 @@ namespace SakugaEngine.Game
 
         private async void StartIntroSequence()
         {
+            GD.Print("StartIntroSequence: Begin");
             PositionFightersAtSpawns();
 
             float tauntDuration = PlayTaunts();
+            GD.Print($"StartIntroSequence: Playing Taunts ({tauntDuration}s)");
             await ToSignal(GetTree().CreateTimer(tauntDuration), "timeout");
+            GD.Print("StartIntroSequence: Taunts finished");
 
             Fighters[0].PlayNeutralState();
             Fighters[1].PlayNeutralState();
 
             Vector3 targetCameraPosition = Camera.CalculateFollowPosition(Fighters[0], Fighters[1]);
             cameraFollowLocked = true;
+            GD.Print("StartIntroSequence: Starting Dolly");
             Tween dolly = Camera.PlayIntroDolly(targetCameraPosition, introDollyDuration);
             if (dolly != null)
                 await ToSignal(dolly, "finished");
+            GD.Print("StartIntroSequence: Dolly finished");
 
             ShowFightLabel(true);
             await ToSignal(GetTree().CreateTimer(fightFlashTime), "timeout");
@@ -344,6 +349,7 @@ namespace SakugaEngine.Game
 
             cameraFollowLocked = false;
             inputsLocked = false;
+            GD.Print("StartIntroSequence: Inputs Unlocked!");
             StartHesitantAdvance();
         }
 
@@ -446,6 +452,12 @@ namespace SakugaEngine.Game
                     ushort combinedInput = 0;
                     combinedInput |= playerInput[i * InputSize];
                     combinedInput |= (ushort)(playerInput[(i * InputSize) + 1] << 8);
+
+                    if (i == 0) // Log for P1
+                    {
+                        GD.Print($"GameLoop P1: InputSize={InputSize} playerInputLen={playerInput.Length} Combined={combinedInput}");
+                    }
+
                     Fighters[i].ParseInputs(combinedInput);
                 }
             }
@@ -478,7 +490,7 @@ namespace SakugaEngine.Game
 
             if (Frame % 60 == 0)
             {
-                GD.Print($"Frame: {Frame}, Seed: {finalSeed}");
+                GD.Print($"Frame: {Frame}, Seed: {finalSeed}, InputsLocked: {inputsLocked}");
                 if (Fighters[0] != null) GD.Print($"P1 Pos: {Fighters[0].Body.FixedPosition}, State: {Fighters[0].Animator.CurrentState}");
                 if (Fighters[1] != null) GD.Print($"P2 Pos: {Fighters[1].Body.FixedPosition}, State: {Fighters[1].Animator.CurrentState}");
             }
@@ -547,6 +559,11 @@ namespace SakugaEngine.Game
                 input[0] |= (byte)(touchData & 0xFF);
                 if (inputSize > 1)
                     input[1] |= (byte)((touchData >> 8) & 0xFF);
+            }
+
+            if (input[0] != 0)
+            {
+                GD.Print($"ReadInputs({id}): Detected Input! {input[0]}");
             }
 
             return input;

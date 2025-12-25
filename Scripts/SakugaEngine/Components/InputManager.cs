@@ -16,47 +16,142 @@ namespace SakugaEngine
             if (motion == null) return false;
             if (motion.ValidInputs == null) return false;
 
-            bool inputFound = false;
-
+            // Iterate over all valid input patterns for this move
             for (int i = 0; i < motion.ValidInputs.Length; i++)
             {
-                //Define the first input to check
-                //If the result is less than 0, cycle it to the end
-                int startingInput = (CurrentHistory - motion.ValidInputs[i].Inputs.Length) + 1;
-                if (startingInput < 0) startingInput += Global.InputHistorySize;
+                // We start searching for the LAST input in the sequence at the current frame
+                int currentHistoryIdx = CurrentHistory;
+                // How much time we have "spent" looking back. If this exceeds motion.InputBuffer, fail.
+                int accumulatedTime = 0;
 
-                for (int j = 0; j < motion.ValidInputs[i].Inputs.Length; j++)
+                bool patternFound = true;
+
+                // Iterate backwards through the required inputs of the pattern (last to first)
+                for (int j = motion.ValidInputs[i].Inputs.Length - 1; j >= 0; j--)
                 {
-                    int HistoryIndex = (startingInput + j) % Global.InputHistorySize;
+                    InputSequence inputRequirement = motion.ValidInputs[i].Inputs[j];
 
-                    Global.DirectionalInputs directionals = motion.ValidInputs[i].Inputs[j].Directional;
-                    Global.ButtonInputs buttons = motion.ValidInputs[i].Inputs[j].Buttons;
+                    // Search backwards from currentHistoryIdx until we find a match or run out of buffer
+                    int foundIndex = -1;
 
-                    Global.ButtonMode dirMode = motion.ValidInputs[i].Inputs[j].DirectionalMode;
-                    Global.ButtonMode butMode = motion.ValidInputs[i].Inputs[j].ButtonMode;
+                    // Limit search to the input buffer duration
+                    int searchLimit = motion.InputBuffer > 0 ? motion.InputBuffer : 30; // Default 30f if 0, mostly for safety
 
-                    bool validBuffer = motion.InputBuffer == 0 ||
-                        InputHistory[HistoryIndex].duration <= motion.InputBuffer;
+                    // We only search as far back as we have 'time' left in the buffer
+                    // But also, we need to be careful not to create an infinite loop if history is circular
 
-                    bool validInput;
+                    int framesSearched = 0;
+                    int checkIdx = currentHistoryIdx;
 
-                    if (directionals > 0 && buttons == 0)
-                        validInput = CheckDirectionalInputs(HistoryIndex, directionals, dirMode, motion.AbsoluteDirection);
-                    else if (directionals == 0 && buttons > 0)
-                        validInput = CheckButtonInputs(HistoryIndex, buttons, butMode);
+                    while (framesSearched < searchLimit && accumulatedTime < searchLimit)
+                    {
+                        // Check if the input at checkIdx (and its duration) matches the requirement
+                        // For the very last input (j == length-1), it MUST be active NOW (at CurrentHistory) usually, 
+                        // or at least very recently. 
+                        // However, for "fuzzy" feel, we might allow the last input to be a few frames old if we want 'kara' style or buffer forgiveness.
+                        // But usually, CheckMoves is called because we want to execute NOW.
+                        // Let's assume strict timing for the *last* input (must be active or JustPressed), 
+                        // but standard "fuzzy" scanning for previous inputs.
+
+                        // BUT: The existing code used `CurrentHistory - ...` implying strict alignment.
+                        // We want: Find Input[Last] within tolerances. Then Find Input[Last-1] before that, etc.
+
+                        bool match = CheckSingleInput(checkIdx, inputRequirement, motion.AbsoluteDirection, motion.DirectionalChargeLimit);
+
+                        if (match)
+                        {
+                            foundIndex = checkIdx;
+                            break;
+                        }
+
+                        // Move back one frame
+                        accumulatedTime += 1; // 1 frame of gap
+                        framesSearched++;
+
+                        checkIdx--;
+                        if (checkIdx < 0) checkIdx += Global.InputHistorySize;
+                    }
+
+                    if (foundIndex != -1)
+                    {
+                        // Found this step!
+                        // The next step (previous in sequence) must be found BEFORE this one in time.
+                        // So we set currentHistoryIdx to foundIndex - 1 (or -duration?)
+                        // If we want to ensure we don't reuse the same frame for multiple inputs unless allowed:
+                        // usually we move the pointer back.
+                        currentHistoryIdx = foundIndex - 1;
+                        if (currentHistoryIdx < 0) currentHistoryIdx += Global.InputHistorySize;
+                    }
                     else
-                        validInput = CheckDirectionalInputs(HistoryIndex, directionals, dirMode, motion.AbsoluteDirection) &&
-                        CheckButtonInputs(HistoryIndex, buttons, butMode);
-
-                    bool chargedInput = CheckChargeInputs(HistoryIndex, directionals, motion.DirectionalChargeLimit);
-
-                    inputFound = (validBuffer && validInput) || chargedInput;
-                    if (!inputFound) break;
+                    {
+                        // Could not find this required input within the time window
+                        patternFound = false;
+                        break;
+                    }
                 }
-                if (inputFound) break;
+
+                if (patternFound)
+                {
+                    GD.Print($"CheckMotionInputs: Fuzzy Pattern {i} Matched!");
+                    return true;
+                }
             }
 
-            return inputFound;
+            return false;
+        }
+
+        private bool CheckSingleInput(int historyIdx, InputSequence requirement, bool absDir, int chargeLimit)
+        {
+            Global.DirectionalInputs d = requirement.Directional;
+            Global.ButtonInputs b = requirement.Buttons;
+            Global.ButtonMode dMode = requirement.DirectionalMode;
+            Global.ButtonMode bMode = requirement.ButtonMode;
+
+            bool matchesDir = false;
+            bool matchesBtn = false;
+
+            // Check Direction
+            if (d == 0)
+            {
+                // If requirement is Neutral (0), we check if internal inputs are neutral? 
+                // Or does 0 mean "ignoring direction"?
+                // In your Global.cs, you have `CheckDirectionalInputs` handle 0 as Neutral Check if Mode is NOT_PRESSED?
+                // Let's use your existing logic helpers.
+                matchesDir = CheckDirectionalInputs(historyIdx, d, dMode, absDir);
+            }
+            else
+            {
+                matchesDir = CheckDirectionalInputs(historyIdx, d, dMode, absDir);
+            }
+
+            // Check Buttons
+            if (b == 0)
+            {
+                // If 0, usually means "No button required" -> matches any button state? 
+                // OR "Must accept empty button"?
+                // The original code:
+                /*
+                    if (directionals > 0 && buttons == 0) 
+                        validInput = CheckDirectionalInputs...
+                    else if (directionals == 0 && buttons > 0)
+                        validInput = CheckButtonInputs...
+                    else 
+                        validInput = CheckDirectionalInputs && CheckButtonInputs
+                 */
+                // This implies "AND" logic if both are present.
+                matchesBtn = true; // Assume true if not checking buttons
+            }
+            else
+            {
+                matchesBtn = CheckButtonInputs(historyIdx, b, bMode);
+            }
+
+            // If we have BOTH, we need BOTH to match.
+            // If we have only Directions, we ignore buttons? 
+            // The original logic:
+            if (d > 0 && b == 0) return matchesDir;
+            if (d == 0 && b > 0) return matchesBtn;
+            return matchesDir && matchesBtn;
         }
 
         public bool CheckInputEnd(MotionInputs motion)

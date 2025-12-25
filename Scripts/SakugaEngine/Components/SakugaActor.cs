@@ -4,18 +4,18 @@ using SakugaEngine.Resources;
 
 namespace SakugaEngine
 {
-	public partial class SakugaActor : SakugaNode
-	{
-		[ExportCategory("Components")]
-		[Export] public PhysicsBody Body;
-		[Export] public InputManager Inputs;
-		[Export] public SakugaVariables Variables;
-		[Export] public FrameAnimator Animator;
-		[Export] public StanceManager Stance;
-		[Export] public CombatTracker Tracker;
+    public partial class SakugaActor : SakugaNode
+    {
+        [ExportCategory("Components")]
+        [Export] public PhysicsBody Body;
+        [Export] public InputManager Inputs;
+        [Export] public SakugaVariables Variables;
+        [Export] public FrameAnimator Animator;
+        [Export] public StanceManager Stance;
+        [Export] public CombatTracker Tracker;
         [Export] public SoundQueue[] Sounds;
 
-		[ExportCategory("Visuals")]
+        [ExportCategory("Visuals")]
         [Export] protected Node3D[] Graphics;
 
         [ExportCategory("Lists")]
@@ -28,7 +28,7 @@ namespace SakugaEngine
         public virtual SakugaFighter FighterReference() { return null; }
 
         public virtual bool LifeEnded() { return false; }
-        
+
         public override void Render()
         {
             GlobalPosition = Global.ToScaledVector3(Body.FixedPosition);
@@ -37,7 +37,7 @@ namespace SakugaEngine
             Animator.ViewAnimations();
         }
 
-		public void UpdateFighterPhysics()
+        public void UpdateFighterPhysics()
         {
             if (Animator.GetCurrentState().statePhysics.Length == 0) return;
 
@@ -82,7 +82,7 @@ namespace SakugaEngine
             }
         }
 
-		public void UpdateHitboxes()
+        public void UpdateHitboxes()
         {
             for (int i = 0; i < Animator.GetCurrentState().hitboxStates.Length; ++i)
             {
@@ -99,7 +99,7 @@ namespace SakugaEngine
         {
             if (Animator.GetCurrentState().stateProperties.Length <= 0)
                 Body.FrameProperties = 0;
-            
+
             for (int i = 0; i < Animator.GetCurrentState().stateProperties.Length; ++i)
             {
                 if (Animator.Frame == Animator.GetCurrentState().stateProperties[i].Frame)
@@ -109,24 +109,29 @@ namespace SakugaEngine
             }
         }
 
-		public void StateTransitions()
+        public void StateTransitions()
         {
-            if (Animator.GetCurrentState().stateTransitions.Length <= 0) return;
+            if (Animator.GetCurrentState().stateTransitions.Length <= 0)
+            {
+                // Monitor this to ensure we aren't constantly seeing 0 transitions for Idle
+                // if (Inputs.InputSide == Body.PlayerSide) GD.Print($"State {Animator.CurrentState} has 0 transitions.");
+                return;
+            }
 
             for (int i = 0; i < Animator.GetCurrentState().stateTransitions.Length; i++)
             {
                 if (Animator.GetCurrentState().stateTransitions[i].StateIndex < 0) continue;
-                
+
                 byte conditions = (byte)Animator.GetCurrentState().stateTransitions[i].Condition;
                 if (conditions == 0) return;
-                
+
                 //Condition 1: State End
                 bool c1 = (conditions & (byte)Global.TransitionCondition.STATE_END) == 0 ||
-                        ((conditions & (byte)Global.TransitionCondition.STATE_END) != 0 && 
+                        ((conditions & (byte)Global.TransitionCondition.STATE_END) != 0 &&
                         Animator.Frame >= Animator.GetCurrentState().Duration - 1);
                 //Condition 2: At Frame
                 bool c2 = (conditions & (byte)Global.TransitionCondition.AT_FRAME) == 0 ||
-                    ((conditions & (byte)Global.TransitionCondition.AT_FRAME) != 0 && 
+                    ((conditions & (byte)Global.TransitionCondition.AT_FRAME) != 0 &&
                     Animator.Frame == Animator.GetCurrentState().stateTransitions[i].AtFrame);
                 //Condition 3: On Ground
                 bool c3 = (conditions & (byte)Global.TransitionCondition.ON_GROUND) == 0 ||
@@ -142,17 +147,36 @@ namespace SakugaEngine
                     ((conditions & (byte)Global.TransitionCondition.ON_LIFE_END) != 0 && LifeEnded());
                 //Condition 7: On Input Command
                 bool c7 = (conditions & (byte)Global.TransitionCondition.ON_INPUT_COMMAND) == 0 ||
-                    ((conditions & (byte)Global.TransitionCondition.ON_INPUT_COMMAND) != 0 && 
+                    ((conditions & (byte)Global.TransitionCondition.ON_INPUT_COMMAND) != 0 &&
                     Inputs.CheckMotionInputs(Animator.GetCurrentState().stateTransitions[i].Inputs));
                 //Condition 8: On Distance
                 int distance = Global.Distance(FighterReference().GetOpponent().Body.FixedPosition, Body.FixedPosition).X;
                 bool c8 = (conditions & (byte)Global.TransitionCondition.ON_DISTANCE) == 0 ||
-                    ((conditions & (byte)Global.TransitionCondition.ON_DISTANCE) != 0 && 
+                    ((conditions & (byte)Global.TransitionCondition.ON_DISTANCE) != 0 &&
                     distance >= Animator.GetCurrentState().stateTransitions[i].DistanceArea.X &&
                     distance <= Animator.GetCurrentState().stateTransitions[i].DistanceArea.Y);
 
                 bool ValidTransition = c1 && c2 && c3 && c4 && c5 && c6 && c7 && c8;
-                if (ValidTransition) Animator.PlayState(Animator.GetCurrentState().stateTransitions[i].StateIndex);
+                if (!ValidTransition && Inputs.InputSide == Body.PlayerSide)
+                {
+                    // Filter: Only show logs if Input Command is involved and detecting input
+                    if ((conditions & (byte)Global.TransitionCondition.ON_INPUT_COMMAND) != 0)
+                    {
+                        if (c7) // Input passed but something else failed?
+                            GD.Print($"State {Animator.CurrentState} Transition {i} Input OK but failed others: C1{c1} C2{c2} C3{c3} C4{c4} C5{c5} C6{c6} C8{c8}");
+                        else if (Inputs.CurrentInput().rawInput != 0)
+                        {
+                            // Input failed but we are pressing something!
+                            GD.Print($"State {Animator.CurrentState} Transition {i} Input FAILED. RawInput: {Inputs.CurrentInput().rawInput}");
+                        }
+                    }
+                }
+
+                if (ValidTransition)
+                {
+                    GD.Print($"TRANSITION SUCCESS! From {Animator.CurrentState} to {Animator.GetCurrentState().stateTransitions[i].StateIndex}");
+                    Animator.PlayState(Animator.GetCurrentState().stateTransitions[i].StateIndex);
+                }
             }
         }
 
@@ -171,9 +195,9 @@ namespace SakugaEngine
                         case SpawnObjectAnimationEvent spawnEvent: //Spawn Object (Spawnable, VFX)
                             Vector2I dst = Teleport(spawnEvent.TargetPosition, spawnEvent.Index,
                                     spawnEvent.xRelativeTo, spawnEvent.yRelativeTo);
-                            
-                            int ind = spawnEvent.IsRandom ? 
-                                Global.RNG.Next(spawnEvent.Index, spawnEvent.Range) : 
+
+                            int ind = spawnEvent.IsRandom ?
+                                Global.RNG.Next(spawnEvent.Index, spawnEvent.Range) :
                                 spawnEvent.Index;
                             if (spawnEvent.FromExtraVariable >= 0)
                             {
@@ -181,19 +205,19 @@ namespace SakugaEngine
                                 Variables.ExtraVariables[spawnEvent.FromExtraVariable].ChangeOnUse();
                             }
                             switch (spawnEvent.Object)
-                                {
-                                    case Global.ObjectType.SPAWNABLE:
-                                        FighterReference().SpawnSpawnable(ind, dst);
-                                        break;
-                                    case Global.ObjectType.VFX:
-                                        FighterReference().SpawnVFX(ind, dst, spawnEvent.FollowParent ? Body : null);
-                                        break;
-                                }
+                            {
+                                case Global.ObjectType.SPAWNABLE:
+                                    FighterReference().SpawnSpawnable(ind, dst);
+                                    break;
+                                case Global.ObjectType.VFX:
+                                    FighterReference().SpawnVFX(ind, dst, spawnEvent.FollowParent ? Body : null);
+                                    break;
+                            }
                             break;
                         case TeleportAnimationEvent teleportEvent: //Teleport
                             dst = Teleport(teleportEvent.TargetPosition, teleportEvent.Index,
                                     teleportEvent.xRelativeTo, teleportEvent.yRelativeTo);
-                            
+
                             Body.MoveTo(dst);
                             break;
                         case ApplyDamageAnimationEvent damageEvent: //Animation Damage
@@ -226,7 +250,7 @@ namespace SakugaEngine
         public void AnimationDamage(ApplyDamageAnimationEvent damageEvent)
         {
             SakugaFighter reference = null;
-            
+
             switch (damageEvent.Index)
             {
                 case 0:
@@ -247,10 +271,10 @@ namespace SakugaEngine
                 case Global.ExtraVariableChange.SET:
                     reference.Variables.CurrentHealth = finalDamage;
                     break;
-                case  Global.ExtraVariableChange.ADD:
+                case Global.ExtraVariableChange.ADD:
                     reference.Variables.AddHealth(finalDamage);
                     break;
-                case  Global.ExtraVariableChange.SUBTRACT:
+                case Global.ExtraVariableChange.SUBTRACT:
                     reference.Variables.TakeDamage(finalDamage, 0, damageEvent.KillingBlow);
                     break;
             }
@@ -265,7 +289,7 @@ namespace SakugaEngine
         {
             if (SFXList == null) return;
             if (VoicesList == null) return;
-            
+
             int ind = soundEvent.IsRandom ? Global.RNG.Next(soundEvent.Index, soundEvent.Range) : soundEvent.Index;
             if (soundEvent.FromExtraVariable >= 0)
                 ind = Variables.ExtraVariables[soundEvent.FromExtraVariable].CurrentValue;
@@ -348,5 +372,5 @@ namespace SakugaEngine
             Vector2I finalPosition = new Vector2I(Target.X + relativePosX, Target.Y + relativePosY);
             return finalPosition;
         }
-	}
+    }
 }

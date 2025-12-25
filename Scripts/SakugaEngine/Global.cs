@@ -15,7 +15,7 @@ namespace SakugaEngine
         public const int CeilingLimit = 120000;
         public const int StartingPosition = 15000;
         public const int MaxPlayersDistance = 70000;
-        public const int InputHistorySize = 16;
+        public const int InputHistorySize = 60;
         public const int KaraCancelWindow = 3;
         public const int GravityDecay = 2500;
         public const int HitstunDecayMinCombo = 8;
@@ -163,8 +163,8 @@ namespace SakugaEngine
 
         public static bool ShowHitboxes;
 
-        //Random Number Generator
-        public static Random RNG;
+        //Random Number Generator. Initialize with a default value so any early calls before seeding don't crash.
+        public static Random RNG = new Random();
         public static string baseSeed = "Sakuga Engine"; //You can change this if you want
         public static void UpdateRNG(int seed)
         {

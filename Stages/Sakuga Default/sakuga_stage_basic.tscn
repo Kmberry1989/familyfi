@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://dk22qgaiwdb7k"]
+[gd_scene load_steps=8 format=3 uid="uid://dk22qgaiwdb7k"]
 
 [ext_resource type="Texture2D" uid="uid://6ctweo6uvot8" path="res://icon.svg" id="1_mopnr"]
+[ext_resource type="Material" uid="uid://cio0cpsfimapv" path="res://Prototyping/Materials/MAT_Prototype_Green.tres" id="1_nv2gc"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_cc1ax"]
 
@@ -33,6 +34,7 @@ environment = SubResource("Environment_iltph")
 
 [node name="Floor" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+material_override = ExtResource("1_nv2gc")
 mesh = SubResource("BoxMesh_ql5gv")
 
 [node name="SpawnMarkers" type="Node3D" parent="."]

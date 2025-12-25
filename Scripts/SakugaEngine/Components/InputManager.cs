@@ -21,9 +21,6 @@ namespace SakugaEngine
             {
                 // We start searching for the LAST input in the sequence at the current frame
                 int currentHistoryIdx = CurrentHistory;
-                // How much time we have "spent" looking back. If this exceeds motion.InputBuffer, fail.
-                int accumulatedTime = 0;
-
                 bool patternFound = true;
 
                 // Iterate backwards through the required inputs of the pattern (last to first)
@@ -35,15 +32,15 @@ namespace SakugaEngine
                     int foundIndex = -1;
 
                     // Limit search to the input buffer duration
-                    int searchLimit = motion.InputBuffer > 0 ? motion.InputBuffer : 30; // Default 30f if 0, mostly for safety
+                    int searchLimit = motion.InputBuffer > 0 ? motion.InputBuffer : int.MaxValue;
 
-                    // We only search as far back as we have 'time' left in the buffer
-                    // But also, we need to be careful not to create an infinite loop if history is circular
-
+                    // Track how many history frames we've walked while we scan backwards. We cap by both buffer
+                    // duration and history size to avoid infinite loops in the circular buffer.
                     int framesSearched = 0;
+                    int historySteps = 0;
                     int checkIdx = currentHistoryIdx;
 
-                    while (framesSearched < searchLimit && accumulatedTime < searchLimit)
+                    while (historySteps < Global.InputHistorySize && framesSearched <= searchLimit)
                     {
                         // Check if the input at checkIdx (and its duration) matches the requirement
                         // For the very last input (j == length-1), it MUST be active NOW (at CurrentHistory) usually, 
@@ -64,9 +61,9 @@ namespace SakugaEngine
                             break;
                         }
 
-                        // Move back one frame
-                        accumulatedTime += 1; // 1 frame of gap
-                        framesSearched++;
+                        // Move back one history entry and accumulate the time that entry lasted.
+                        framesSearched += InputHistory[checkIdx].duration;
+                        historySteps++;
 
                         checkIdx--;
                         if (checkIdx < 0) checkIdx += Global.InputHistorySize;
@@ -146,11 +143,16 @@ namespace SakugaEngine
                 matchesBtn = CheckButtonInputs(historyIdx, b, bMode);
             }
 
+            bool hasDir = d != 0;
+            bool hasBtn = b != 0;
+            bool chargeMatch = chargeLimit > 0 && hasDir && CheckChargeInputs(historyIdx, d, chargeLimit);
+
             // If we have BOTH, we need BOTH to match.
             // If we have only Directions, we ignore buttons? 
             // The original logic:
-            if (d > 0 && b == 0) return matchesDir;
-            if (d == 0 && b > 0) return matchesBtn;
+            if (hasDir && !hasBtn) return matchesDir || chargeMatch;
+            if (!hasDir && hasBtn) return matchesBtn;
+            if (hasDir && hasBtn) return (matchesDir || chargeMatch) && matchesBtn;
             return matchesDir && matchesBtn;
         }
 

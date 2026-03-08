@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dv1oiic7jx4jg" path="res://Scripts/SakugaEngine/UI/MobileControls.cs" id="1_x5y6z"]
 
-[node name="MobileControls" type="Control" node_paths=PackedStringArray("DPadUp", "DPadDown", "DPadLeft", "DPadRight", "ButtonA", "ButtonB", "ButtonC", "ButtonD", "ButtonStart")]
+[node name="MobileControls" type="Control" node_paths=PackedStringArray("DPadRegion", "ActionRegion", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", "ButtonA", "ButtonB", "ButtonC", "ButtonD", "ButtonStart", "ButtonBack")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,6 +10,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_x5y6z")
+DPadRegion = NodePath("DPad")
+ActionRegion = NodePath("FaceButtons")
 DPadUp = NodePath("DPad/Up")
 DPadDown = NodePath("DPad/Down")
 DPadLeft = NodePath("DPad/Left")
@@ -19,6 +21,7 @@ ButtonB = NodePath("FaceButtons/B")
 ButtonC = NodePath("FaceButtons/C")
 ButtonD = NodePath("FaceButtons/D")
 ButtonStart = NodePath("MenuButtons/Start")
+ButtonBack = NodePath("MenuButtons/Back")
 
 [node name="DPad" type="Control" parent="."]
 layout_mode = 1
@@ -122,5 +125,12 @@ grow_horizontal = 0
 layout_mode = 0
 offset_left = 70.0
 offset_right = 120.0
+offset_bottom = 50.0
+color = Color(0.5, 0.5, 0.5, 0.5)
+
+[node name="Back" type="ColorRect" parent="MenuButtons"]
+layout_mode = 0
+offset_left = 10.0
+offset_right = 60.0
 offset_bottom = 50.0
 color = Color(0.5, 0.5, 0.5, 0.5)

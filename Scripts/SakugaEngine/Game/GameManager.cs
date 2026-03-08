@@ -1,5 +1,6 @@
 using Godot;
 using System.IO;
+using System;
 using PleaseResync;
 using SakugaEngine.Resources;
 using SakugaEngine.Collision;
@@ -24,6 +25,7 @@ namespace SakugaEngine.Game
         [Export] private AudioStreamPlayer BGMSource;
         [Export] private MobileControls TouchInput;
         [Export] Label SeedViewer;
+        [Export] private bool enableSharedAnimationInjection = false;
         public uint InputSize;
 
         private List<SakugaNode> Nodes;
@@ -55,25 +57,258 @@ namespace SakugaEngine.Game
 
         private bool aiIntroAdvanceActive;
         private bool aiIntroAdvanceMoving;
+        private bool runtimeReady;
+        private bool fatalRuntimeError;
+        private string fatalRuntimeReason = string.Empty;
+        private readonly HashSet<string> oneShotWarnings = new HashSet<string>();
+
+        public bool HasFatalRuntimeError => fatalRuntimeError;
+        public string FatalRuntimeReason => fatalRuntimeReason;
+        public bool IsRuntimeReady => runtimeReady && !fatalRuntimeError;
+
+        private void WarnOnce(string key, string message)
+        {
+            if (!oneShotWarnings.Add(key)) return;
+            GD.PrintErr(message);
+        }
+
+        private void MarkFatalRuntime(string context, IEnumerable<string> issues)
+        {
+            if (fatalRuntimeError) return;
+
+            fatalRuntimeError = true;
+            runtimeReady = false;
+            fatalRuntimeReason = $"{context}: {string.Join(", ", issues)}";
+            GD.PrintErr($"GameManager fatal runtime dependency error ({context}): {string.Join(", ", issues)}.");
+        }
+
+        private bool ValidateRuntimeDependencies(string context, bool logIssues, bool markFatal)
+        {
+            List<string> missing = new List<string>();
+
+            if (World == null) missing.Add(nameof(World));
+            if (Monitor == null) missing.Add(nameof(Monitor));
+            if (Camera == null) missing.Add(nameof(Camera));
+            if (healthHUD == null) missing.Add(nameof(healthHUD));
+            if (metersHUD == null) missing.Add(nameof(metersHUD));
+
+            if (Nodes == null) missing.Add(nameof(Nodes));
+
+            if (Fighters == null || Fighters.Length < 2)
+            {
+                missing.Add("Fighters[2]");
+            }
+            else
+            {
+                for (int i = 0; i < Fighters.Length; i++)
+                {
+                    SakugaFighter fighter = Fighters[i];
+                    if (fighter == null)
+                    {
+                        missing.Add($"Fighters[{i}]");
+                        continue;
+                    }
+                    if (fighter.Body == null) missing.Add($"Fighters[{i}].Body");
+                    if (fighter.Inputs == null) missing.Add($"Fighters[{i}].Inputs");
+                    if (fighter.Animator == null) missing.Add($"Fighters[{i}].Animator");
+                }
+            }
+
+            if (missing.Count == 0)
+            {
+                runtimeReady = true;
+                return true;
+            }
+
+            runtimeReady = false;
+
+            if (logIssues)
+            {
+                WarnOnce($"runtime_missing_{context}", $"GameManager runtime validation failed ({context}): {string.Join(", ", missing)}");
+            }
+
+            if (markFatal)
+            {
+                MarkFatalRuntime(context, missing);
+            }
+
+            return false;
+        }
+
+        private bool EnsureRuntimeReady(string context, bool markFatal)
+        {
+            if (fatalRuntimeError) return false;
+            if (runtimeReady) return true;
+            return ValidateRuntimeDependencies(context, true, markFatal);
+        }
 
         public override void _Ready()
         {
-            healthHUD = (HealthHUD)FighterUI.GetNode("GameHUD_Background");
-            metersHUD = (MetersHUD)FighterUI.GetNode("GameHUD_Foreground");
-            fightBanner = FighterUI.GetNodeOrNull<Control>("FightBanner");
+            healthHUD = FighterUI?.GetNodeOrNull<HealthHUD>("GameHUD_Background");
+            metersHUD = FighterUI?.GetNodeOrNull<MetersHUD>("GameHUD_Foreground");
+            fightBanner = FighterUI?.GetNodeOrNull<Control>("FightBanner");
             fightLabel = fightBanner?.GetNodeOrNull<Label>("FightLabel");
             if (fightBanner != null) fightBanner.Visible = false;
-            Nodes = [];
+            Nodes ??= new List<SakugaNode>();
+
+            if (FighterUI == null)
+                WarnOnce("missing_fighter_ui", "GameManager: FighterUI is null.");
+            if (healthHUD == null)
+                WarnOnce("missing_health_hud", "GameManager: Could not resolve GameHUD_Background from FighterUI.");
+            if (metersHUD == null)
+                WarnOnce("missing_meters_hud", "GameManager: Could not resolve GameHUD_Foreground from FighterUI.");
+
+            // Try to locate the optional GDScript Input Manager addon and connect signals
+            TryConnectAddonInputManager();
+        }
+
+        private Node addonInputNode = null;
+        private bool addonInputActive = false;
+        // Per-player raw input cache populated by the addon (low 8 bits, high 8 bits available)
+        private ushort[] addonRawInputs = new ushort[2];
+
+        private void TryConnectAddonInputManager()
+        {
+            // Search the entire scene tree root for the addon script (addons/input_manager/input_manager.gd)
+            Node root = GetTree().Root as Node;
+            addonInputNode = FindAddonInputNode(root);
+            if (addonInputNode == null) return;
+
+            // Found a candidate addon node; proceed to connect
+
+            // Connect signals exposed by the addon
+            try
+            {
+                addonInputNode.Connect("on_action_button", new Callable(this, nameof(OnAddonActionButton)));
+                addonInputNode.Connect("on_action_stick", new Callable(this, nameof(OnAddonActionStick)));
+                addonInputNode.Connect("on_action_trigger", new Callable(this, nameof(OnAddonActionTrigger)));
+                addonInputActive = true;
+                GD.Print("GameManager: Connected to addon InputManager at " + addonInputNode.GetPath());
+            }
+            catch (System.Exception e)
+            {
+                GD.PrintErr("GameManager: Failed to connect to addon InputManager: " + e.Message);
+            }
+        }
+
+        private Node FindAddonInputNode(Node n)
+        {
+            if (n == null) return null;
+            // Check this node
+                // Detect addon by presence of the expected signals
+                if (n.HasSignal("on_action_button") && n.HasSignal("on_action_stick") && n.HasSignal("on_action_trigger"))
+                    return n;
+
+            foreach (var child in n.GetChildren())
+            {
+                if (child is Node cn)
+                {
+                    var found = FindAddonInputNode(cn);
+                    if (found != null) return found;
+                }
+            }
+
+            return null;
+        }
+
+        // Signals from addon: action name and pressed state
+        public void OnAddonActionButton(Variant actionName, Variant pressed)
+        {
+            string action = actionName.ToString();
+            bool isPressed = (bool)pressed;
+            ApplyAddonButtonAction(action, isPressed);
+        }
+
+        // Signals from addon: action name and Vector2 stick value
+        public void OnAddonActionStick(Variant actionName, Variant value)
+        {
+            string action = actionName.ToString();
+            Vector2 v = (Vector2)value;
+            ApplyAddonStickAction(action, v);
+        }
+
+        // Signals from addon: action name and float trigger value
+        public void OnAddonActionTrigger(Variant actionName, Variant value)
+        {
+            string action = actionName.ToString();
+            float v = (float)value;
+            ApplyAddonTriggerAction(action, v);
+        }
+
+        private void ApplyAddonButtonAction(string action, bool pressed)
+        {
+            // Expect actions named like "k1_face_a", "k2_left" etc.
+            int player = -1;
+            if (action.StartsWith("k1_")) player = 0;
+            else if (action.StartsWith("k2_")) player = 1;
+            if (player == -1) return; // ignore unprefixed actions for now
+
+            string suffix = action[(action.IndexOf('_') + 1)..];
+
+            int bit = 0;
+            switch (suffix)
+            {
+                case "up": bit = Global.INPUT_UP; break;
+                case "down": bit = Global.INPUT_DOWN; break;
+                case "left": bit = Global.INPUT_LEFT; break;
+                case "right": bit = Global.INPUT_RIGHT; break;
+                case "face_a": bit = Global.INPUT_FACE_A; break;
+                case "face_b": bit = Global.INPUT_FACE_B; break;
+                case "face_c": bit = Global.INPUT_FACE_C; break;
+                case "face_d": bit = Global.INPUT_FACE_D; break;
+                default: return;
+            }
+
+            if (pressed)
+                addonRawInputs[player] |= (ushort)bit;
+            else
+                addonRawInputs[player] &= unchecked((ushort)~(ushort)bit);
+        }
+
+        private void ApplyAddonStickAction(string action, Vector2 v)
+        {
+            int player = -1;
+            if (action.StartsWith("k1_")) player = 0;
+            else if (action.StartsWith("k2_")) player = 1;
+            if (player == -1) return;
+
+            // Expect suffix like "left_stick" or "right_stick"; we only care about directional axes
+            float dead = 0.5f;
+            // Horizontal
+            if (v.X > dead) { addonRawInputs[player] |= (ushort)Global.INPUT_RIGHT; addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_LEFT); }
+            else if (v.X < -dead) { addonRawInputs[player] |= (ushort)Global.INPUT_LEFT; addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_RIGHT); }
+            else { addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_LEFT); addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_RIGHT); }
+            // Vertical
+            if (v.Y > dead) { addonRawInputs[player] |= (ushort)Global.INPUT_DOWN; addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_UP); }
+            else if (v.Y < -dead) { addonRawInputs[player] |= (ushort)Global.INPUT_UP; addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_DOWN); }
+            else { addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_UP); addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_DOWN); }
+        }
+
+        private void ApplyAddonTriggerAction(string action, float v)
+        {
+            // Map triggers to face buttons if action is prefixed with k1_/k2_
+            int player = -1;
+            if (action.StartsWith("k1_")) player = 0;
+            else if (action.StartsWith("k2_")) player = 1;
+            if (player == -1) return;
+
+            // Simple mapping: if trigger pressed substantially, set FACE_A
+            if (v > 0.5f) addonRawInputs[player] |= (ushort)Global.INPUT_FACE_A;
+            else addonRawInputs[player] &= unchecked((ushort)~(ushort)Global.INPUT_FACE_A);
         }
 
         public override void _Process(double delta)
         {
             base._Process(delta);
+            if (fatalRuntimeError) return;
             if (Fighters == null) return;
             if (Monitor == null) return;
 
-            if (!BGMSource.Playing) BGMSource.Play();
-            SeedViewer.Text = finalSeed.ToString();
+            if (BGMSource != null && !BGMSource.Playing) BGMSource.Play();
+            else if (BGMSource == null) WarnOnce("missing_bgm_source", "GameManager: BGMSource is null.");
+
+            if (SeedViewer != null) SeedViewer.Text = finalSeed.ToString();
+            else WarnOnce("missing_seed_viewer", "GameManager: SeedViewer label is null.");
 
             if (Input.IsActionJustPressed("toggle_hitboxes"))
                 Global.ShowHitboxes = !Global.ShowHitboxes;
@@ -81,23 +316,38 @@ namespace SakugaEngine.Game
 
         public void SetBGM()
         {
-            if (BGMSource != null && !BGMSource.Playing && songsList.elements[selectedBGM].clip != null)
+            if (BGMSource != null &&
+                songsList != null &&
+                songsList.elements != null &&
+                selectedBGM >= 0 &&
+                selectedBGM < songsList.elements.Length &&
+                !BGMSource.Playing &&
+                songsList.elements[selectedBGM].clip != null)
+            {
                 BGMSource.Stream = songsList.elements[selectedBGM].clip;
+            }
         }
 
         public void Render()
         {
+            if (!EnsureRuntimeReady(nameof(Render), true)) return;
+
             RenderNodes();
-            if (!cameraFollowLocked)
+            if (!cameraFollowLocked && Camera != null)
                 Camera.UpdateCamera(Fighters[0], Fighters[1]);
-            healthHUD.UpdateHealthBars(Fighters, Monitor);
-            metersHUD.UpdateMeters(Fighters);
+            if (healthHUD != null)
+                healthHUD.UpdateHealthBars(Fighters, Monitor);
+            if (metersHUD != null)
+                metersHUD.UpdateMeters(Fighters);
         }
 
         void RenderNodes()
         {
+            if (Nodes == null) return;
+
             foreach (SakugaNode node in Nodes)
             {
+                if (node == null) continue;
                 node.Render();
             }
         }
@@ -135,14 +385,22 @@ namespace SakugaEngine.Game
         /// <returns>a 32-bit seed number</returns>
         private int CalculateSeed()
         {
+            if (Fighters == null || Fighters.Length < 2 || Fighters[0] == null || Fighters[1] == null) return generatedSeed;
+
             int posX = Fighters[0].Body.FixedPosition.X + Fighters[1].Body.FixedPosition.X;
             int posY = Fighters[0].Body.FixedPosition.Y + Fighters[1].Body.FixedPosition.Y;
             int stateFrame = Fighters[0].Animator.Frame + Fighters[0].Animator.CurrentState + Fighters[1].Animator.Frame + Fighters[1].Animator.CurrentState;
-            return generatedSeed + posX + posY + stateFrame + (Frame * Global.SimulationScale) + Monitor.Clock;
+            int monitorClock = Monitor?.Clock ?? 0;
+            return generatedSeed + posX + posY + stateFrame + (Frame * Global.SimulationScale) + monitorClock;
         }
 
         public void Setup()
         {
+            oneShotWarnings.Clear();
+            runtimeReady = false;
+            fatalRuntimeError = false;
+            fatalRuntimeReason = string.Empty;
+
             // Sync with Global Match settings
             player1Character = Global.Match.Player1.selectedCharacter;
             player2Character = Global.Match.Player2.selectedCharacter;
@@ -153,6 +411,7 @@ namespace SakugaEngine.Game
             {
                 foreach (Node child in GetChildren())
                 {
+                    if (child == FighterUI || child == TouchInput) continue;
                     child.QueueFree();
                 }
             }
@@ -169,12 +428,18 @@ namespace SakugaEngine.Game
             CreateStage(selectedStage);
 
             World = new PhysicsWorld();
-            if (Nodes == null) Nodes = [];
+            if (Nodes == null) Nodes = new List<SakugaNode>();
             Nodes.Clear();
             Fighters = new SakugaFighter[2];
 
             CreateFighter(player1Character, 0);
             CreateFighter(player2Character, 1);
+
+            if (Fighters[0] == null || Fighters[1] == null)
+            {
+                MarkFatalRuntime(nameof(Setup), new[] { "Failed to create both fighters." });
+                return;
+            }
 
             Fighters[0].SetOpponent(Fighters[1]);
             Fighters[1].SetOpponent(Fighters[0]);
@@ -182,7 +447,7 @@ namespace SakugaEngine.Game
             //AI test (select it in a better way later)
             Fighters[0].UseAI = Global.Match.Player1.selectedDevice == -1;
             Fighters[1].UseAI = Global.Match.Player2.selectedDevice == -1;
-            bool touchInputAvailable = TouchInput != null && TouchInput.IsVisibleInTree() && DisplayServer.IsTouchscreenAvailable();
+            bool touchInputAvailable = TouchInput != null && TouchInput.IsVisibleInTree();
             GD.Print($"Setup: P1 Device={Global.Match.Player1.selectedDevice}, P2 Device={Global.Match.Player2.selectedDevice}. Touch Controls Available: {touchInputAvailable}.");
 
             GenerateBaseSeed();
@@ -190,26 +455,47 @@ namespace SakugaEngine.Game
             if (Monitor != null) Monitor.Initialize(Fighters);
             else GD.PrintErr("GameManager: Monitor is null!");
 
-            if (healthHUD == null && FighterUI != null) healthHUD = (HealthHUD)FighterUI.GetNode("GameHUD_Background");
+            if (healthHUD == null && FighterUI != null) healthHUD = FighterUI.GetNodeOrNull<HealthHUD>("GameHUD_Background");
             if (healthHUD != null) healthHUD.Setup(Fighters);
             else GD.PrintErr("GameManager: healthHUD is null! (Check FighterUI connection)");
 
-            if (metersHUD == null && FighterUI != null) metersHUD = (MetersHUD)FighterUI.GetNode("GameHUD_Foreground");
+            if (metersHUD == null && FighterUI != null) metersHUD = FighterUI.GetNodeOrNull<MetersHUD>("GameHUD_Foreground");
             if (metersHUD != null) metersHUD.Setup(Fighters);
             else GD.PrintErr("GameManager: metersHUD is null! (Check FighterUI connection)");
+
+            if (!ValidateRuntimeDependencies(nameof(Setup), true, true))
+                return;
 
             StartIntroSequence();
         }
 
         public void CreateFighter(int characterIndex, int playerIndex)
         {
+            if (fightersList == null || fightersList.elements == null || fightersList.elements.Length == 0)
+            {
+                MarkFatalRuntime(nameof(CreateFighter), new[] { "fightersList is empty or null." });
+                return;
+            }
             if (characterIndex < 0 || characterIndex >= fightersList.elements.Length)
             {
                 GD.PrintErr($"Invalid Character Index: {characterIndex}! Defaulting to 0.");
                 characterIndex = 0;
             }
+            if (fightersList.elements[characterIndex].Instance == null)
+            {
+                MarkFatalRuntime(nameof(CreateFighter), new[] { $"fightersList[{characterIndex}].Instance is null." });
+                return;
+            }
+
             Node temp = fightersList.elements[characterIndex].Instance.Instantiate();
-            Fighters[playerIndex] = temp as SakugaFighter;
+            SakugaFighter fighter = temp as SakugaFighter;
+            if (fighter == null)
+            {
+                MarkFatalRuntime(nameof(CreateFighter), new[] { $"Instanced fighter at index {characterIndex} is not a SakugaFighter." });
+                return;
+            }
+
+            Fighters[playerIndex] = fighter;
             Fighters[playerIndex].Profile = fightersList.elements[characterIndex].Profile;
             AddActor(Fighters[playerIndex]);
             Fighters[playerIndex].Initialize(playerIndex);
@@ -232,6 +518,8 @@ namespace SakugaEngine.Game
 
         private void PositionFightersAtSpawns()
         {
+            if (Fighters == null || Fighters.Length < 2 || Fighters[0] == null || Fighters[1] == null) return;
+
             Vector2I leftPosition = new(-Global.StartingPosition, 0);
             Vector2I rightPosition = new(Global.StartingPosition, 0);
 
@@ -324,6 +612,7 @@ namespace SakugaEngine.Game
 
         private async void StartIntroSequence()
         {
+            if (!EnsureRuntimeReady(nameof(StartIntroSequence), true)) return;
             GD.Print("StartIntroSequence: Begin");
             PositionFightersAtSpawns();
 
@@ -391,13 +680,33 @@ namespace SakugaEngine.Game
 
         public void AddActor(SakugaNode newNode, bool isPhysicsBody = true)
         {
+            if (newNode == null)
+            {
+                WarnOnce("add_actor_null", "GameManager.AddActor received a null node.");
+                return;
+            }
+
+            Nodes ??= new List<SakugaNode>();
             AddChild(newNode);
             Nodes.Add(newNode);
-            if (isPhysicsBody) World.AddBody((newNode as SakugaActor).Body);
+            if (isPhysicsBody)
+            {
+                SakugaActor actor = newNode as SakugaActor;
+                if (World == null || actor?.Body == null)
+                {
+                    WarnOnce("add_actor_missing_body", $"GameManager.AddActor skipped physics registration for '{newNode.Name}'.");
+                }
+                else
+                {
+                    World.AddBody(actor.Body);
+                }
+            }
         }
 
         public void GameLoop(byte[] playerInput)
         {
+            if (!EnsureRuntimeReady(nameof(GameLoop), true)) return;
+
             int expectedInputSize = (int)(InputSize * Fighters.Length);
             if (playerInput == null || playerInput.Length < expectedInputSize)
             {
@@ -408,7 +717,7 @@ namespace SakugaEngine.Game
             finalSeed = CalculateSeed();
             Global.UpdateRNG(finalSeed);
             Frame++;
-            Monitor.Tick();
+            Monitor?.Tick();
 
             randomTest = new Vector3I(
                 Global.RNG.Next(),
@@ -463,11 +772,22 @@ namespace SakugaEngine.Game
             }
 
             for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i] == null) continue;
                 Nodes[i].PreTick();
+            }
 
             for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i] == null) continue;
                 Nodes[i].Tick();
+            }
 
+            if (World == null)
+            {
+                MarkFatalRuntime(nameof(GameLoop), new[] { "World is null during simulation." });
+                return;
+            }
             World.Simulate();
 
             if (Fighters[0].Body.FixedPosition.X < Fighters[1].Body.FixedPosition.X)
@@ -486,7 +806,10 @@ namespace SakugaEngine.Game
             }
 
             for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i] == null) continue;
                 Nodes[i].LateTick();
+            }
 
             if (Frame % 60 == 0)
             {
@@ -503,6 +826,19 @@ namespace SakugaEngine.Game
             byte[] input = new byte[inputSize];
             string prefix = "";
 
+            // If the GDScript addon is connected, prefer its inputs
+            if (addonInputActive)
+            {
+                if (id >= 0 && id < addonRawInputs.Length)
+                {
+                    ushort raw = addonRawInputs[id];
+                    input[0] = (byte)(raw & 0xFF);
+                    if (inputSize > 1)
+                        input[1] = (byte)((raw >> 8) & 0xFF);
+                }
+                return input;
+            }
+
             switch (id)
             {
                 case 0:
@@ -513,28 +849,38 @@ namespace SakugaEngine.Game
                     break;
             }
 
-            if (Input.IsActionPressed(prefix + "_up") && !Input.IsActionPressed(prefix + "_down"))
+            // Local helper: prefer InputMap actions but fall back to direct key checks
+            bool ActionOrKey(string action, Key key)
+            {
+                if (InputMap.HasAction(action))
+                    return Input.IsActionPressed(action);
+                return Input.IsKeyPressed(key);
+            }
+
+            // Directional: try mapped actions first, else common keys
+            if (ActionOrKey(prefix + "_up", Key.Up) && !ActionOrKey(prefix + "_down", Key.Down))
                 input[0] |= Global.INPUT_UP;
 
-            if (!Input.IsActionPressed(prefix + "_up") && Input.IsActionPressed(prefix + "_down"))
+            if (!ActionOrKey(prefix + "_up", Key.Up) && ActionOrKey(prefix + "_down", Key.Down))
                 input[0] |= Global.INPUT_DOWN;
 
-            if (Input.IsActionPressed(prefix + "_left") && !Input.IsActionPressed(prefix + "_right"))
+            if (ActionOrKey(prefix + "_left", Key.Left) && !ActionOrKey(prefix + "_right", Key.Right))
                 input[0] |= Global.INPUT_LEFT;
 
-            if (!Input.IsActionPressed(prefix + "_left") && Input.IsActionPressed(prefix + "_right"))
+            if (!ActionOrKey(prefix + "_left", Key.Left) && ActionOrKey(prefix + "_right", Key.Right))
                 input[0] |= Global.INPUT_RIGHT;
 
-            if (Input.IsActionPressed(prefix + "_face_a"))
+            // Face buttons: fall back to Z/X/C/V for player 0 and Numpad/other for player 1 if needed
+            if (ActionOrKey(prefix + "_face_a", Key.Z))
                 input[0] |= Global.INPUT_FACE_A;
 
-            if (Input.IsActionPressed(prefix + "_face_b"))
+            if (ActionOrKey(prefix + "_face_b", Key.X))
                 input[0] |= Global.INPUT_FACE_B;
 
-            if (Input.IsActionPressed(prefix + "_face_c"))
+            if (ActionOrKey(prefix + "_face_c", Key.C))
                 input[0] |= Global.INPUT_FACE_C;
 
-            if (Input.IsActionPressed(prefix + "_face_d"))
+            if (ActionOrKey(prefix + "_face_d", Key.V))
                 input[0] |= Global.INPUT_FACE_D;
 
             /*if (Input.IsActionPressed(prexif + "_macro_ab"))
@@ -552,8 +898,8 @@ namespace SakugaEngine.Game
             if (Input.IsActionPressed(prexif + "_macro_abcd"))
                 input |= Global.INPUT_FACE_A | Global.INPUT_FACE_B | Global.INPUT_FACE_C | Global.INPUT_FACE_D;*/
 
-            bool useTouch = DisplayServer.IsTouchscreenAvailable();
-            if (id == 0 && TouchInput != null && TouchInput.IsVisibleInTree() && useTouch)
+            bool useTouch = TouchInput != null && TouchInput.IsVisibleInTree();
+            if (id == 0 && useTouch)
             {
                 ushort touchData = TouchInput.GetInput();
                 input[0] |= (byte)(touchData & 0xFF);
@@ -572,9 +918,12 @@ namespace SakugaEngine.Game
         public void SaveState(BinaryWriter bw)
         {
             bw.Write(Frame);
-            Monitor.Serialize(bw);
-            for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Serialize(bw);
+            Monitor?.Serialize(bw);
+            if (Nodes != null)
+            {
+                for (int i = 0; i < Nodes.Count; i++)
+                    Nodes[i]?.Serialize(bw);
+            }
 
             bw.Write(randomTest.X);
             bw.Write(randomTest.Y);
@@ -584,9 +933,12 @@ namespace SakugaEngine.Game
         public void LoadState(BinaryReader br)
         {
             Frame = br.ReadInt32();
-            Monitor.Deserialize(br);
-            for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Deserialize(br);
+            Monitor?.Deserialize(br);
+            if (Nodes != null)
+            {
+                for (int i = 0; i < Nodes.Count; i++)
+                    Nodes[i]?.Deserialize(br);
+            }
 
             randomTest.X = br.ReadInt32();
             randomTest.Y = br.ReadInt32();
@@ -602,11 +954,10 @@ namespace SakugaEngine.Game
 
         private void InjectSharedAnimations(SakugaFighter fighter)
         {
-            GD.Print($"[InjectSharedAnimations] Starting for {fighter.Name}...");
-
-            if (fighter.Animator == null || fighter.Animator.players == null || fighter.Animator.players.Length == 0)
+            if (!enableSharedAnimationInjection)
             {
-                GD.PrintErr("[InjectSharedAnimations] No Animator or Players found!");
+                // Animation injection disabled — managed externally via scene resources.
+                GD.Print($"[InjectSharedAnimations] Skipped for {fighter.Name} (injection disabled).");
                 return;
             }
 
@@ -640,6 +991,27 @@ namespace SakugaEngine.Game
 
                 AddSharedAnimationsToLibrary(library, sharedAnimations, aliases);
                 EnsureDefaultAnimations(fighter, playerIndex, library);
+
+                // Log per-player details for runtime verification
+                try
+                {
+                    var apList = targetPlayer.GetAnimationList();
+                    GD.Print($"[InjectSharedAnimations] Player {playerIndex} AnimationPlayer list for {fighter.Name}: {string.Join(", ", apList)}");
+                }
+                catch (System.Exception e)
+                {
+                    GD.PrintErr($"[InjectSharedAnimations] Failed to get AnimationPlayer list for {fighter.Name} player {playerIndex}: {e.Message}");
+                }
+
+                try
+                {
+                    var libList = library.GetAnimationList();
+                    GD.Print($"[InjectSharedAnimations] Player {playerIndex} AnimationLibrary entries for {fighter.Name}: {string.Join(", ", libList)}");
+                }
+                catch (System.Exception e)
+                {
+                    GD.PrintErr($"[InjectSharedAnimations] Failed to get AnimationLibrary list for {fighter.Name} player {playerIndex}: {e.Message}");
+                }
             }
 
             GD.Print($"[InjectSharedAnimations] Final Animation List for {fighter.Name}: {string.Join(", ", fighter.Animator.players[0].GetAnimationList())}");
@@ -748,7 +1120,14 @@ namespace SakugaEngine.Game
                 var animationCopy = (Animation)kvp.Value.Duplicate();
                 if (!library.HasAnimation(kvp.Key))
                 {
-                    library.AddAnimation(kvp.Key, animationCopy);
+                    try
+                    {
+                        library.AddAnimation(kvp.Key, animationCopy);
+                    }
+                    catch (System.Exception e)
+                    {
+                        GD.PrintErr($"[InjectSharedAnimations] Could not add animation '{kvp.Key}' to library: {e.Message}");
+                    }
                 }
 
                 if (aliases.TryGetValue(kvp.Key, out var aliasList))
@@ -757,7 +1136,14 @@ namespace SakugaEngine.Game
                     {
                         if (!library.HasAnimation(alias))
                         {
-                            library.AddAnimation(alias, (Animation)animationCopy.Duplicate());
+                            try
+                            {
+                                library.AddAnimation(alias, (Animation)animationCopy.Duplicate());
+                            }
+                            catch (System.Exception e)
+                            {
+                                GD.PrintErr($"[InjectSharedAnimations] Could not add alias '{alias}' for '{kvp.Key}': {e.Message}");
+                            }
                         }
                     }
                 }
@@ -775,7 +1161,7 @@ namespace SakugaEngine.Game
 
             Animation fallback = GetFallbackAnimation(library, prefix);
 
-            HashSet<string> requiredAnimations = [];
+            HashSet<string> requiredAnimations = new HashSet<string>();
             foreach (var state in fighter.Animator.States)
             {
                 if (state?.animationSettings == null) continue;
@@ -797,7 +1183,7 @@ namespace SakugaEngine.Game
 
         private Animation GetFallbackAnimation(AnimationLibrary library, string prefix)
         {
-            string[] candidates = [prefix + "Idle", "Idle"];
+            string[] candidates = new string[] { prefix + "Idle", "Idle" };
             foreach (var candidate in candidates)
             {
                 if (library.HasAnimation(candidate))

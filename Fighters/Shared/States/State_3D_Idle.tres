@@ -6,7 +6,7 @@
 
 [sub_resource type="Resource" id="Resource_anim"]
 script = ExtResource("1_anim")
-SourceAnimation = "Idle"
+SourceAnimation = "Bouncing Fight Idle"
 
 [sub_resource type="Resource" id="Resource_phys"]
 script = ExtResource("1_phys")

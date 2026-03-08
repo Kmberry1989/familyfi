@@ -31,10 +31,20 @@ namespace SakugaEngine
 
         public override void Render()
         {
+            if (Body == null) return;
+
             GlobalPosition = Global.ToScaledVector3(Body.FixedPosition);
-            foreach (Node3D g in Graphics)
-                g.Scale = new Vector3(Body.PlayerSide, 1, 1);
-            Animator.ViewAnimations();
+
+            if (Graphics != null)
+            {
+                foreach (Node3D g in Graphics)
+                {
+                    if (g == null) continue;
+                    g.Scale = new Vector3(Body.PlayerSide, 1, 1);
+                }
+            }
+
+            Animator?.ViewAnimations();
         }
 
         public void UpdateFighterPhysics()

@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://j5t0o28p2u6u" path="res://Scripts/SakugaEngine/Game/SakugaRollbackManager.cs" id="6_jke5l"]
 [ext_resource type="Resource" uid="uid://fxj4uvd0y37r" path="res://Soundtrack.tres" id="7_6xh1p"]
 [ext_resource type="PackedScene" uid="uid://c8l7q6y5x403" path="res://Scenes/MobileControls.tscn" id="8_mobile"]
+[ext_resource type="Script" uid="uid://fightscenecontrollerscript" path="res://Scripts/SakugaEngine/Scenes/FightSceneController.cs" id="9_fsc"]
 
 [node name="Root" type="Node3D"]
 
@@ -44,7 +45,7 @@ vertical_alignment = 1
 
 [node name="RollbackManager" type="Node" parent="." node_paths=PackedStringArray("GameManager")]
 script = ExtResource("6_jke5l")
-AutoStart = true
+AutoStart = false
 GameManager = NodePath("../GameManager")
 SpectatorDelay = 20
 
@@ -85,3 +86,7 @@ volume_db = -7.5
 [node name="MobileUI" type="CanvasLayer" parent="."]
 
 [node name="MobileControls" parent="MobileUI" instance=ExtResource("8_mobile")]
+
+[node name="FightSceneController" type="Node" parent="."]
+script = ExtResource("9_fsc")
+GameManagerPath = NodePath("../GameManager")

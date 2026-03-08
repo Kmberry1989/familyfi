@@ -1,14 +1,26 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 namespace SakugaEngine.UI
 {
     public partial class MobileControls : Control
     {
-        // Dictionary to track which action is held by which touch index
-        private Dictionary<int, string> _activeTouches = new Dictionary<int, string>();
+        private sealed class TouchSample
+        {
+            public string Action;
+            public Vector2 StartPosition;
+            public Vector2 LastPosition;
+            public bool StartedOnActionSide;
+        }
 
-        // Configuration for buttons
+        private readonly Dictionary<int, TouchSample> _touchSamples = new Dictionary<int, TouchSample>();
+
+        [ExportCategory("Regions")]
+        [Export] public Control DPadRegion;
+        [Export] public Control ActionRegion;
+
+        [ExportCategory("Buttons")]
         [Export] public Control DPadUp;
         [Export] public Control DPadDown;
         [Export] public Control DPadLeft;
@@ -19,14 +31,24 @@ namespace SakugaEngine.UI
         [Export] public Control ButtonC;
         [Export] public Control ButtonD;
 
+        [ExportCategory("Meta Buttons")]
         [Export] public Control ButtonStart;
+        [Export] public Control ButtonBack;
         [Export] public Control ButtonSelect;
 
+        [ExportCategory("Gestures")]
+        [Export] public int DoubleTapWindowMs = 260;
+        [Export] public float SwipeThreshold = 75.0f;
+        [Export] public int TransientFrameDuration = 2;
+
         private ushort _currentInputState;
+        private ushort _transientInputState;
+        private int _transientFramesRemaining;
+        private long _lastLeftTapTimeMs = -10_000;
+        private long _lastRightTapTimeMs = -10_000;
 
         public override void _Ready()
         {
-            // Ensure multi-touch is enabled
             Input.UseAccumulatedInput = false;
         }
 
@@ -52,39 +74,74 @@ namespace SakugaEngine.UI
 
         private void HandleTouchStart(int index, Vector2 position)
         {
-            string action = GetActionAtPosition(position);
-            if (!string.IsNullOrEmpty(action))
+            TouchSample sample = new TouchSample
             {
-                if (_activeTouches.ContainsKey(index))
-                    _activeTouches[index] = action;
-                else
-                    _activeTouches.Add(index, action);
-            }
+                StartPosition = position,
+                LastPosition = position,
+                StartedOnActionSide = IsActionSidePosition(position),
+                Action = GetActionAtPosition(position)
+            };
+
+            _touchSamples[index] = sample;
+            TryQueueDashFromDoubleTap(sample.Action);
         }
 
         private void HandleTouchDrag(int index, Vector2 position)
         {
-            // For now, simple update similar to start. 
-            // Better D-Pad logic often involves checking distance from center of D-Pad anchor.
-            // But checking button bounds is a good start.
-            string action = GetActionAtPosition(position);
+            if (!_touchSamples.TryGetValue(index, out TouchSample sample)) return;
 
-            if (_activeTouches.ContainsKey(index))
-            {
-                string previousAction = _activeTouches[index];
-                if (previousAction != action)
-                {
-                    _activeTouches[index] = action;
-                }
-            }
+            sample.LastPosition = position;
+            sample.Action = GetActionAtPosition(position);
         }
 
         private void HandleTouchEnd(int index)
         {
-            if (_activeTouches.ContainsKey(index))
+            if (!_touchSamples.TryGetValue(index, out TouchSample sample)) return;
+
+            TryQueueTauntFromSwipe(sample);
+            _touchSamples.Remove(index);
+        }
+
+        private void TryQueueDashFromDoubleTap(string action)
+        {
+            long now = (long)Time.GetTicksMsec();
+
+            if (action == "LEFT")
             {
-                _activeTouches.Remove(index);
+                if (now - _lastLeftTapTimeMs <= DoubleTapWindowMs)
+                    QueueTransientInputs((ushort)(Global.INPUT_DASH | Global.INPUT_LEFT));
+                _lastLeftTapTimeMs = now;
             }
+            else if (action == "RIGHT")
+            {
+                if (now - _lastRightTapTimeMs <= DoubleTapWindowMs)
+                    QueueTransientInputs((ushort)(Global.INPUT_DASH | Global.INPUT_RIGHT));
+                _lastRightTapTimeMs = now;
+            }
+        }
+
+        private void TryQueueTauntFromSwipe(TouchSample sample)
+        {
+            if (sample == null || !sample.StartedOnActionSide) return;
+
+            Vector2 delta = sample.LastPosition - sample.StartPosition;
+            if (delta.Y > -SwipeThreshold) return;
+            if (Mathf.Abs(delta.Y) <= Mathf.Abs(delta.X)) return;
+
+            QueueTransientInputs((ushort)Global.INPUT_TAUNT);
+        }
+
+        private bool IsActionSidePosition(Vector2 position)
+        {
+            if (IsPointInControl(ActionRegion, position)) return true;
+
+            return IsPointInControl(ButtonA, position) ||
+                   IsPointInControl(ButtonB, position) ||
+                   IsPointInControl(ButtonC, position) ||
+                   IsPointInControl(ButtonD, position) ||
+                   IsPointInControl(ButtonStart, position) ||
+                   IsPointInControl(ButtonBack, position) ||
+                   IsPointInControl(ButtonSelect, position);
         }
 
         private string GetActionAtPosition(Vector2 position)
@@ -100,6 +157,7 @@ namespace SakugaEngine.UI
             if (IsPointInControl(ButtonD, position)) return "D";
 
             if (IsPointInControl(ButtonStart, position)) return "START";
+            if (IsPointInControl(ButtonBack, position)) return "BACK";
             if (IsPointInControl(ButtonSelect, position)) return "SELECT";
 
             return null;
@@ -111,26 +169,51 @@ namespace SakugaEngine.UI
             return control.GetGlobalRect().HasPoint(point);
         }
 
+        private void QueueTransientInputs(ushort inputs)
+        {
+            _transientInputState |= inputs;
+            _transientFramesRemaining = Mathf.Max(_transientFramesRemaining, Mathf.Max(1, TransientFrameDuration));
+        }
+
+        private ushort BuildHeldInputState()
+        {
+            ushort heldState = 0;
+
+            foreach (TouchSample sample in _touchSamples.Values)
+            {
+                if (sample == null || string.IsNullOrEmpty(sample.Action)) continue;
+
+                switch (sample.Action)
+                {
+                    case "UP": heldState |= (ushort)Global.INPUT_UP; break;
+                    case "DOWN": heldState |= (ushort)Global.INPUT_DOWN; break;
+                    case "LEFT": heldState |= (ushort)Global.INPUT_LEFT; break;
+                    case "RIGHT": heldState |= (ushort)Global.INPUT_RIGHT; break;
+                    case "A": heldState |= (ushort)Global.INPUT_FACE_A; break;
+                    case "B": heldState |= (ushort)Global.INPUT_FACE_B; break;
+                    case "C": heldState |= (ushort)Global.INPUT_FACE_C; break;
+                    case "D": heldState |= (ushort)Global.INPUT_FACE_D; break;
+                    case "START": heldState |= (ushort)Global.INPUT_MENU; break;
+                    case "BACK": heldState |= (ushort)Global.INPUT_BACK; break;
+                    case "SELECT": heldState |= (ushort)Global.INPUT_BACK; break;
+                    case "DASH": heldState |= (ushort)Global.INPUT_DASH; break;
+                    case "TAUNT": heldState |= (ushort)Global.INPUT_TAUNT; break;
+                }
+            }
+
+            return heldState;
+        }
+
         public ushort GetInput()
         {
-            _currentInputState = 0;
+            _currentInputState = BuildHeldInputState();
 
-            foreach (var action in _activeTouches.Values)
+            if (_transientFramesRemaining > 0)
             {
-                switch (action)
-                {
-                    case "UP": _currentInputState |= (ushort)Global.INPUT_UP; break;
-                    case "DOWN": _currentInputState |= (ushort)Global.INPUT_DOWN; break;
-                    case "LEFT": _currentInputState |= (ushort)Global.INPUT_LEFT; break;
-                    case "RIGHT": _currentInputState |= (ushort)Global.INPUT_RIGHT; break;
-                    case "A": _currentInputState |= (ushort)Global.INPUT_FACE_A; break;
-                    case "B": _currentInputState |= (ushort)Global.INPUT_FACE_B; break;
-                    case "C": _currentInputState |= (ushort)Global.INPUT_FACE_C; break;
-                    case "D": _currentInputState |= (ushort)Global.INPUT_FACE_D; break;
-                    // Map Start/Select to appropriate flags if they exist
-                    case "START": _currentInputState |= (ushort)Global.INPUT_MENU; break;
-                        // case "SELECT": _currentInputState |= (ushort)Global.INPUT_SELECT; break; 
-                }
+                _currentInputState |= _transientInputState;
+                _transientFramesRemaining--;
+                if (_transientFramesRemaining == 0)
+                    _transientInputState = 0;
             }
 
             return _currentInputState;

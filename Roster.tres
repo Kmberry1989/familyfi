@@ -5,7 +5,7 @@
 [ext_resource type="Resource" path="res://Fighters/DONALD/DONALD_Profile.tres" id="donald_p"]
 [ext_resource type="PackedScene" uid="uid://c1cuvly6prrxl" path="res://Fighters/DONALD/DONALD.tscn" id="donald_s"]
 [ext_resource type="Resource" path="res://Fighters/ERIC/ERIC_Profile.tres" id="eric_p"]
-[ext_resource type="PackedScene" path="res://Fighters/ERIC/ERIC.tscn" id="eric_s"]
+[ext_resource type="PackedScene" uid="uid://detgd3y6hihup" path="res://Fighters/ERIC/ERIC.tscn" id="eric_s"]
 [ext_resource type="Resource" path="res://Fighters/KRISTEN/KRISTEN_Profile.tres" id="kristen_p"]
 [ext_resource type="PackedScene" path="res://Fighters/KRISTEN/KRISTEN.tscn" id="kristen_s"]
 [ext_resource type="Resource" path="res://Fighters/KYLE/KYLE_Profile.tres" id="kyle_p"]

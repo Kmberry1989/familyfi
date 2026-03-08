@@ -106,7 +106,39 @@ namespace SakugaEngine
             Uncrouched = false;
 
             Body.FixedPosition.X = Global.StartingPosition * (-1 + (index * 2));
-            Animator.PlayState(Stance.GetCurrentStance().NeutralState);
+            // Ensure neutral/idle state exists; fallback if misconfigured
+            int neutral = Stance.GetCurrentStance().NeutralState;
+            if (neutral < 0 || neutral >= Animator.States.Length || Animator.States[neutral] == null)
+            {
+                int found = GetStateIndexByName("Idle");
+                if (found < 0)
+                {
+                    // Try to find any MOVEMENT state flagged as IDLE
+                    for (int i = 0; i < Animator.States.Length; i++)
+                    {
+                        if (Animator.States[i] == null) continue;
+                        if (Animator.States[i].Type == Global.StateType.MOVEMENT && ((Animator.States[i].AIFlags & Global.AIFlags.IDLE) != 0))
+                        {
+                            found = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (found >= 0)
+                {
+                    Stance.GetCurrentStance().NeutralState = found;
+                    neutral = found;
+                    GD.Print($"SakugaFighter: Neutral state missing, falling back to state {found} ({Animator.States[found].StateName})");
+                }
+                else
+                {
+                    // As a last resort, clamp to 0
+                    neutral = Mathf.Clamp(neutral, 0, Animator.States.Length - 1);
+                    GD.PrintErr($"SakugaFighter: Neutral state invalid and no idle state found. Using {neutral} as fallback.");
+                }
+            }
+            Animator.PlayState(neutral);
             Animator.Frame = -1;
         }
 
@@ -262,6 +294,9 @@ namespace SakugaEngine
             UpdateHitboxes();
             ResetDamageStatus();
 
+            // Ensure we revert to an idle/rest pose when no input is present
+            EnsureIdleFallback();
+
             //SpawnablesLateTick();
             //VFXTick();
         }
@@ -298,6 +333,41 @@ namespace SakugaEngine
                 HitstunType = 0;
                 BlockStun = false;
                 Uncrouched = false;
+            }
+        }
+        
+        private void EnsureIdleFallback()
+        {
+            // If there's any current input, don't force idle
+            if (Inputs == null) return;
+            if (Inputs.CurrentInput().rawInput != 0) return;
+
+            // If we're already in a movement/idle state, do nothing
+            if (Animator.StateType() == (int)Global.StateType.MOVEMENT) return;
+
+            // Try to find a suitable idle/movement state
+            int idleIndex = GetStateIndexByName("Idle");
+            if (idleIndex < 0)
+            {
+                for (int i = 0; i < Animator.States.Length; i++)
+                {
+                    if (Animator.States[i] == null) continue;
+                    if (Animator.States[i].Type == Global.StateType.MOVEMENT)
+                    {
+                        // prefer states flagged as AI IDLE
+                        if ((Animator.States[i].AIFlags & Global.AIFlags.IDLE) != 0)
+                        {
+                            idleIndex = i;
+                            break;
+                        }
+                        if (idleIndex < 0) idleIndex = i;
+                    }
+                }
+            }
+
+            if (idleIndex >= 0)
+            {
+                Animator.PlayState(idleIndex, true);
             }
         }
         #region Push Force
@@ -596,23 +666,43 @@ namespace SakugaEngine
 
         public string DebugInfo()
         {
-            return "Position: " + Body.FixedPosition +
-                    "\nVelocity: " + Body.FixedVelocity +
-                    "\nStance: " + Stance.CurrentStance +
-                    "\nState Index: " + Animator.CurrentState +
-                    "\nState Name: " + Animator.GetCurrentState().ResourcePath +
-                    "\nAnimation Name: " + Animator.GetCurrentState().StateName +
-                    "\nCurrent Move: " + Stance.CurrentMove +
-                    "\nBuffered Move: " + Stance.BufferedMove +
-                    "\nFrame: " + Animator.Frame +
-                    "\nHitstun Type: " + HitstunType +
-                    "\nHitbox: " + Body.CurrentHitbox +
-                    "\nHealth: " + Variables.CurrentHealth + "/" + Variables.MaxHealth +
-                    "\nSuper Gauge: " + Variables.CurrentSuperGauge + "/" + Variables.MaxSuperGauge +
-                    "\nSuper Armor: " + Variables.SuperArmor +
-                    "\nHit Stun: " + HitStun.TimeLeft +
-                    "\nCharge Buffers: " + Inputs.CurrentInput().hCharge + " | " + Inputs.CurrentInput().vCharge + " | " + Inputs.CurrentInput().bCharge +
-                    "\nBlocking: " + IsBlocking();
+            var bodyPos = Body != null ? Body.FixedPosition.ToString() : "<null>";
+            var bodyVel = Body != null ? Body.FixedVelocity.ToString() : "<null>";
+            var stanceIdx = Stance != null ? Stance.CurrentStance.ToString() : "<null>";
+            var stateIdx = Animator != null ? Animator.CurrentState.ToString() : "<null>";
+            var currentState = Animator?.GetCurrentState();
+            var stateResource = currentState != null ? currentState.ResourcePath : "<null>";
+            var stateName = currentState != null ? currentState.StateName : "<null>";
+            var currentMove = Stance != null ? Stance.CurrentMove.ToString() : "<null>";
+            var bufferedMove = Stance != null ? Stance.BufferedMove.ToString() : "<null>";
+            var frame = Animator != null ? Animator.Frame.ToString() : "<null>";
+            var hitstun = HitStun != null ? HitStun.TimeLeft.ToString() : "<null>";
+            var hitbox = Body != null ? Body.CurrentHitbox.ToString() : "<null>";
+            var health = Variables != null ? ($"{Variables.CurrentHealth}/{Variables.MaxHealth}") : "<null>";
+            var superGauge = Variables != null ? ($"{Variables.CurrentSuperGauge}/{Variables.MaxSuperGauge}") : "<null>";
+            var superArmor = Variables != null ? Variables.SuperArmor.ToString() : "<null>";
+            var input = Inputs?.CurrentInput();
+            var chargeBuffers = input != null ? ($"{input.Value.hCharge} | {input.Value.vCharge} | {input.Value.bCharge}") : "<null>";
+            var blocking = "<unknown>";
+            try { blocking = IsBlocking().ToString(); } catch { blocking = "<err>"; }
+
+            return "Position: " + bodyPos +
+                "\nVelocity: " + bodyVel +
+                "\nStance: " + stanceIdx +
+                "\nState Index: " + stateIdx +
+                "\nState Name: " + stateResource +
+                "\nAnimation Name: " + stateName +
+                "\nCurrent Move: " + currentMove +
+                "\nBuffered Move: " + bufferedMove +
+                "\nFrame: " + frame +
+                "\nHitstun Type: " + HitstunType +
+                "\nHitbox: " + hitbox +
+                "\nHealth: " + health +
+                "\nSuper Gauge: " + superGauge +
+                "\nSuper Armor: " + superArmor +
+                "\nHit Stun: " + hitstun +
+                "\nCharge Buffers: " + chargeBuffers +
+                "\nBlocking: " + blocking;
         }
 
         #region Damage functions

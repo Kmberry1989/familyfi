@@ -5,6 +5,20 @@
 [ext_resource type="PackedScene" uid="uid://bcd20uej347vj" path="res://Fighters/DONALD/donald.glb" id="3_model"]
 [ext_resource type="Script" uid="uid://bx452hpssiy38" path="res://Scripts/SakugaEngine/Components/FrameAnimator.cs" id="4_anim"]
 [ext_resource type="AnimationLibrary" uid="uid://cdg5yw3aunflr" path="res://Fighters/Shared/Animations/Headbutt.glb" id="4_d64ji"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Bouncing Fight Idle.glb" id="bfi_glb"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Walking.glb" id="shared_walking"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Walking Backward.glb" id="shared_walkback"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Step Backward.glb" id="shared_stepback"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Punching (1).glb" id="shared_punch1"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Punching 2.glb" id="shared_punch2"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Kicking 3.glb" id="shared_kick3"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Kicking 4.glb" id="shared_kick4"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Fireball.glb" id="shared_fireball"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Flying Bicycle Kick.glb" id="shared_flashkick"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Dizzy Idle.glb" id="shared_dizzy"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Stand Up.glb" id="shared_getup"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Blocking.glb" id="shared_block"]
+[ext_resource type="AnimationLibrary" path="res://Fighters/Shared/Animations/Dying.glb" id="shared_death"]
 [ext_resource type="Resource" uid="uid://cfq4ggikx3hmf" path="res://Fighters/Shared/States/State_3D_Idle.tres" id="5_s_idle"]
 [ext_resource type="Resource" uid="uid://bkf15m43diuso" path="res://Fighters/Shared/States/State_3D_WalkF.tres" id="6_s_walkf"]
 [ext_resource type="Resource" uid="uid://c7yv1pohf8lrs" path="res://Fighters/Shared/States/State_3D_WalkB.tres" id="7_s_walkb"]
@@ -516,7 +530,21 @@ bones/62/rotation = Quaternion(0.5159501, 0.039116155, -0.058086842, 0.8537514)
 [node name="AnimationPlayer" parent="Visuals/Model" index="1"]
 libraries = {
 &"": SubResource("AnimationLibrary_7ff6o"),
-&"Headbutt": ExtResource("4_d64ji")
+&"Headbutt": ExtResource("4_d64ji"),
+&"Bouncing Fight Idle": ExtResource("bfi_glb"),
+&"Walk_Forward": ExtResource("shared_walking"),
+&"Walk_Back": ExtResource("shared_walkback"),
+&"Step_Back": ExtResource("shared_stepback"),
+&"Punch_A": ExtResource("shared_punch1"),
+&"Punch_Heavy": ExtResource("shared_punch2"),
+&"Kick_A": ExtResource("shared_kick3"),
+&"Kick_Heavy": ExtResource("shared_kick4"),
+&"Fireball": ExtResource("shared_fireball"),
+&"FlashKick": ExtResource("shared_flashkick"),
+&"Dizzy": ExtResource("shared_dizzy"),
+&"GetUp": ExtResource("shared_getup"),
+&"Block": ExtResource("shared_block"),
+&"Death": ExtResource("shared_death")
 }
 
 [node name="FrameAnimator" type="Node" parent="." node_paths=PackedStringArray("players")]

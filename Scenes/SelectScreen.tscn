@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://c3cyqacvyusmv" path="res://Fighters/Dummy/capsule_render.png" id="12_7p58r"]
 [ext_resource type="Texture2D" uid="uid://cw7llwhkqnheo" path="res://Sprites/Arrow.png" id="18_7p58r"]
 
-[node name="Control" type="Control" node_paths=PackedStringArray("CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer", "BotDifficultyOptions")]
+[node name="Control" type="Control" node_paths=PackedStringArray("CharacterSelectMode", "StageSelectMode", "P1SelectedRender", "P2SelectedRender", "P1SelectedName", "P2SelectedName", "P1Cursor", "P2Cursor", "charactersContainer", "BattleCardLayer", "P1ReadyRender", "P2ReadyRender", "VSLabel", "StageSelectedRender", "StageSelectedName", "SongSelectedName", "P1SelectingStage", "P2SelectingStage", "StageCursor", "stagesContainer", "BotDifficultyOptions", "TouchControls", "TouchConfirmButton", "TouchBackButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -56,6 +56,9 @@ stagesContainer = NodePath("StageSelect/HBoxContainer")
 randomStageThumbnail = ExtResource("9_ly1kb")
 autoStageThumbnail = ExtResource("10_8r0cl")
 BotDifficultyOptions = NodePath("StageSelect/BotDifficultyContainer/BotDifficulty")
+TouchControls = NodePath("TouchControls")
+TouchConfirmButton = NodePath("TouchControls/Confirm")
+TouchBackButton = NodePath("TouchControls/Back")
 
 [node name="StagePortrait" type="TextureRect" parent="."]
 layout_mode = 1
@@ -438,6 +441,43 @@ grow_vertical = 0
 rotation = 4.71239
 texture = ExtResource("18_7p58r")
 expand_mode = 1
+
+[node name="TouchControls" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Confirm" type="Button" parent="TouchControls"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -120.0
+offset_right = -80.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Confirm"
+
+[node name="Back" type="Button" parent="TouchControls"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_top = -120.0
+offset_right = 260.0
+offset_bottom = -40.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Back"
 
 [node name="BattleCardLayer" type="Control" parent="."]
 visible = false

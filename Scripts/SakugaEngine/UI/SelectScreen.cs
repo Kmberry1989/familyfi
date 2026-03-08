@@ -52,6 +52,12 @@ namespace SakugaEngine.UI
         [Export] private Texture2D autoStageThumbnail;
         [Export] private OptionButton BotDifficultyOptions;
 
+        [ExportCategory("Touch Controls")]
+        [Export] private Control TouchControls;
+        [Export] private BaseButton TouchConfirmButton;
+        [Export] private BaseButton TouchBackButton;
+        [Export] private bool ShowTouchControlsOnDesktop = true;
+
         //Hidden variables
         private bool P1Finished;
         private bool P2Finished;
@@ -60,6 +66,8 @@ namespace SakugaEngine.UI
         private bool hasP1Interacted = false;
         private CharSelectButton[] characterButtons;
         private StageSelectButton[] stageSelectionButtons;
+        private bool touchConfirmQueued;
+        private bool touchBackQueued;
 
         // CPU Selection Logic
         private bool isCpuSelecting = false;
@@ -116,7 +124,46 @@ namespace SakugaEngine.UI
             }
 
             SetupBotDifficultyOptions();
+            BindTouchControls();
             StartCpuSelection();
+        }
+
+        private void BindTouchControls()
+        {
+            if (TouchConfirmButton != null)
+                TouchConfirmButton.Pressed += OnTouchConfirmPressed;
+            if (TouchBackButton != null)
+                TouchBackButton.Pressed += OnTouchBackPressed;
+
+            if (TouchControls != null)
+            {
+                bool showTouch = DisplayServer.IsTouchscreenAvailable() || OS.HasFeature("mobile") || ShowTouchControlsOnDesktop;
+                TouchControls.Visible = showTouch;
+            }
+        }
+
+        private void OnTouchConfirmPressed()
+        {
+            touchConfirmQueued = true;
+        }
+
+        private void OnTouchBackPressed()
+        {
+            touchBackQueued = true;
+        }
+
+        private bool ConsumeTouchConfirm()
+        {
+            bool value = touchConfirmQueued;
+            touchConfirmQueued = false;
+            return value;
+        }
+
+        private bool ConsumeTouchBack()
+        {
+            bool value = touchBackQueued;
+            touchBackQueued = false;
+            return value;
         }
 
         private void SetupBotDifficultyOptions()
@@ -232,18 +279,20 @@ namespace SakugaEngine.UI
         {
             if (AllSet) return;
             base._PhysicsProcess(delta);
+            bool touchConfirm = ConsumeTouchConfirm();
+            bool touchBack = ConsumeTouchBack();
             //Player 1 inputs
             bool P1Up = Input.IsActionJustPressed("k1_up");
             bool P1Down = Input.IsActionJustPressed("k1_down");
             bool P1Left = Input.IsActionJustPressed("k1_left");
             bool P1Right = Input.IsActionJustPressed("k1_right");
-            bool P1Confirm = Input.IsActionJustPressed("k1_face_a");
-            bool P1Return = Input.IsActionJustPressed("k1_face_b");
+            bool P1Confirm = Input.IsActionJustPressed("k1_face_a") || touchConfirm;
+            bool P1Return = Input.IsActionJustPressed("k1_face_b") || touchBack;
             //Player 2 inputs
             bool P2Left = Input.IsActionJustPressed("k2_left");
             bool P2Right = Input.IsActionJustPressed("k2_right");
-            bool P2Confirm = Input.IsActionJustPressed("k2_face_a");
-            bool P2Return = Input.IsActionJustPressed("k2_face_b");
+            bool P2Confirm = Input.IsActionJustPressed("k2_face_a") || touchConfirm;
+            bool P2Return = Input.IsActionJustPressed("k2_face_b") || touchBack;
 
             switch (selectionMode)
             {
